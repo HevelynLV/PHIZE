@@ -1,30 +1,60 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:phize/features/analise/domain/rotulos_risco.dart';
 import 'package:phize/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App abre na tela de Login', (WidgetTester tester) async {
+    await tester.pumpWidget(const PhizeApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Entrar'), findsWidgets);
+    expect(find.text('Criar conta'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Login -> Dashboard -> Analisar link -> Resultado', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const PhizeApp());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Phize'), findsOneWidget);
+
+    // Botão "Analisar print" deve estar visível, porém desabilitado.
+    final analisarPrint = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Analisar print'),
+    );
+    expect(analisarPrint.onPressed, isNull);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Analisar link'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Resultado da Análise'), findsOneWidget);
+    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.avisoPermanente), findsOneWidget);
+  });
+
+  testWidgets('Histórico mostra as três faixas e navega ao Resultado', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const PhizeApp());
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Histórico'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.baixoRisco), findsOneWidget);
+
+    await tester.tap(find.text(RotulosRisco.altoRisco));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Resultado da Análise'), findsOneWidget);
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.avisoPermanente), findsOneWidget);
   });
 }
