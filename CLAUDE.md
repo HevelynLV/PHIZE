@@ -57,22 +57,30 @@ O projeto ainda não possui código de aplicação. Ao iniciar a implementação
 
 ```
 lib/
-  core/           # configuração, roteamento, tema, constantes
-  data/           # integrações externas: Firebase, Cloud Vision (OCR),
-                  # LLM/RAG, Safe Browsing, RDAP
-  domain/         # modelos de domínio: Usuario, AnaliseRisco, ReporteComunidade
+  core/              # configuração, roteamento, tema, constantes
+  shared/            # widgets e utilitários usados por mais de uma feature
   features/
-    auth/         # RF01, RF02 — cadastro e login
-    analise/      # RF03, RF04, RF07, RF10 — URL checker, análise de print,
-                  # score de risco, compartilhamento nativo
-    comunidade/   # RF05, RF06, RF08, RF09, RF11 — reporte, upvote, feed,
-                  # busca, compartilhamento externo, moderação
-    conta/        # RF12 — exportação e exclusão de dados pessoais
-  shared/         # widgets e utilitários reutilizáveis entre features
+    auth/            # RF01, RF02
+      data/          # integração Firebase Auth
+      domain/        # modelos e regras da feature
+      presentation/  # telas e widgets
+    analise/         # RF03, RF04, RF07, RF10
+      data/          # OCR, LLM/RAG, Safe Browsing, RDAP
+      domain/        # AnaliseRisco, cálculo de score, mascaramento
+      presentation/
+    comunidade/      # RF05, RF06, RF08, RF09, RF11 (expansão)
+      data/
+      domain/
+      presentation/
+    conta/           # RF12
+      data/
+      domain/
+      presentation/
 ```
 
 Convenções:
 
+- Cada feature contém suas próprias camadas `data/`, `domain/` e `presentation/`. Código só vai para `shared/` quando for efetivamente usado por mais de uma feature — não por antecipação.
 - Linguagem Dart, formatação e nomenclatura padrão Flutter (arquivos em `snake_case`, classes em `UpperCamelCase`).
 - A tabela de pesos do Score de Risco (RF07) deve residir em módulo único de configuração, versionado, com registro das calibragens realizadas — nunca duplicada ou hardcoded em múltiplos pontos do código.
 - Qualquer rotina que manipule imagem ou texto extraído por OCR deve implementar descarte explícito (inclusive em blocos de tratamento de exceção), em conformidade com a Seção 3 deste documento.
