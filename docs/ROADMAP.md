@@ -8,8 +8,8 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 ## ONDE PARAMOS
 
 - **Data:** 2026-09-22
-- **Última tarefa concluída:** Prompt 1.2 — Autenticação (UC01/UC02), 29 testes passando, firestore.rules publicado e validado no Playground de regras
-- **Próximo passo:** Fase 3 — Mascaramento local (RNF07), enquanto a equipe define a tabela de pesos da Fase 2
+- **Última tarefa concluída:** decisões do Score de Risco v1.0 registradas em docs/score-calibracao.md
+- **Próximo passo:** Prompt 2.1 — Motor de Score
 
 ---
 
@@ -190,14 +190,17 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 
 | Decisão | Bloqueia | Origem |
 |---|---|---|
-| Tabela de pesos dos 8 sinais | Fase 2 | RF07 |
-| Pontos de corte entre as 3 faixas de cor | Fase 2 | RF07 |
+| ~~Tabela de pesos dos 8 sinais~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
+| ~~Pontos de corte entre as 3 faixas de cor~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
+| ~~Limite de domínio recém-criado~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
+| ~~Regra de verificação incompleta~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
 | Volume mínimo de texto do OCR | Fase 6 | UC04 |
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
 | ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
 | Bloquear acesso de usuário com e-mail não verificado? | Fase 1 (pode ser revista depois) | RF01 / UC01 |
 | Tempo de expiração do bloqueio de login (provisório: 15 min) | Revisão | RF02 |
 | Bloquear usuário com e-mail não verificado (padrão atual: não) | Revisão | RF01/UC01 |
+| Validação da tabela v1.0 (docs/score-calibracao.md) pela equipe | Não bloqueante | RF07 |
 
 > Padrão adotado: **não bloquear**, seguindo o UC01.
 
@@ -208,6 +211,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - `firestore.rules` não cobre subcoleções de `users/{uid}`; o histórico (Fases 4 e 8) exigirá regra nova.
 - Restringir os campos graváveis em `users/{uid}` aos três previstos (melhoria de segurança).
 - Adicionar ao roadmap os passos de publicação das regras pelo console e teste no Playground.
+- Sincronizar os .docx acadêmicos com as alterações de RF07, arquitetura 3.3 e 6, UC03 e relatório 4.8.
 
 ---
 
@@ -384,23 +388,8 @@ CLAUDE.md ou aos documentos em /docs.
 ## FASE 2 — MOTOR DE SCORE
 
 Lógica pura em Dart. Sem custo, sem API, 100% testável.
-**Pré-requisito: tabela de pesos definida pela equipe.**
 
-**[CLAUDE CODE]**
-```
-Implemente o módulo de cálculo do Score de Risco (RF07).
-
-Requisitos:
-- função determinística pura, sem chamada de API
-- tabela de pesos centralizada em UM arquivo de configuração,
-  versionada (use os pesos fornecidos abaixo)
-- soma com teto de 100 pontos
-- classificação em 3 faixas com a rotulagem exata do RF07
-- testes unitários provando que entradas idênticas
-  geram sempre o mesmo score
-
-Pesos: [colar a tabela definida pela equipe]
-```
+### Prompt 2.1 — usa os valores de docs/score-calibracao.md
 
 ---
 
@@ -469,6 +458,8 @@ a análise não substitui verificação junto à instituição.
 
 Ainda sem Safe Browsing e sem LLM.
 ```
+
+Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regra do score v1.0, nunca resulta em verde. Comportamento esperado, não é bug.
 
 **Marco:** aqui o app já é demonstrável, sem ter gasto um centavo.
 

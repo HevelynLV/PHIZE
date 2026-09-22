@@ -182,6 +182,8 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Justificativa: **Modelos de linguagem não produzem estimativas de probabilidade calibradas: a mesma entrada pode gerar percentuais distintos entre execuções, e o valor devolvido não corresponde a uma medida estatística de risco. Delegar o cálculo ao modelo tornaria o indicador irreprodutível e incompatível com o RNF04, que veda respostas não fundamentadas. A separação entre identificação (modelo) e quantificação (regra determinística) preserva a explicabilidade do veredito e permite auditar a decisão do sistema.
 
+**Calibração: **O motor opera sobre dois grupos de sinais: o grupo Texto/Print, com os oito sinais listados na Descrição, e o grupo Link, derivado da verificação de URL do RF03/UC03. Quando a verificação de uma fonte externa fica incompleta e a faixa resultante dos sinais disponíveis seria a verde, a faixa exibida é elevada para amarelo, preservando a pontuação real e informando ao usuário qual verificação não pôde ser concluída. Os valores numéricos de pesos e faixas constam exclusivamente de `docs/score-calibracao.md`, que é a fonte única desses dados.
+
 ### **RF08 — Visualizar Feed da Comunidade**
 
 **Identificador: **RF08

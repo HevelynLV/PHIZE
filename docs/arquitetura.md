@@ -90,6 +90,8 @@ O valor numérico exibido no termômetro de periculosidade (RF07) não é gerado
 
 A separação entre identificação e quantificação decorre de uma limitação conhecida dos modelos generativos: as probabilidades que produzem não são calibradas, e a mesma entrada pode gerar percentuais distintos entre execuções. A regra determinística assegura reprodutibilidade, permite teste automatizado do comportamento do sistema e mantém rastreável a razão pela qual determinada análise recebeu determinada pontuação.
 
+O motor opera sobre dois grupos de sinais: o grupo Texto/Print, correspondente aos oito sinais do RF07, e o grupo Link, derivado da verificação de URL descrita no capítulo 4 (RF03/UC03). Quando a verificação de uma fonte externa fica incompleta e a faixa resultante dos sinais disponíveis seria a verde, a faixa exibida é elevada para amarelo, preservando a pontuação real e informando ao usuário qual verificação não pôde ser concluída. Os valores de pesos e os pontos de corte das faixas constam exclusivamente de `docs/score-calibracao.md`, fonte única desses dados.
+
 # **4 PROCESSO DE ANÁLISE DE LINKS (URL)**
 
 A verificação de integridade de links (RF03) segue um protocolo de etapas encadeadas para garantir a precisão do Score de Risco:
@@ -142,4 +144,4 @@ Para assegurar a viabilidade operacional e evitar o abandono do usuário (RNF03)
 
 - **Feedback de Interface:** implementação de Skeleton Screens e indicadores de carregamento durante o processamento assíncrono para garantir a percepção de atividade do sistema.
 
-- **Degradação Controlada:** indisponibilidade de uma fonte externa não interrompe a análise. O sistema apresenta o resultado obtido com os sinais disponíveis e informa ao usuário qual verificação não pôde ser concluída.
+- **Degradação Controlada:** indisponibilidade de uma fonte externa não interrompe a análise. O sistema apresenta o resultado obtido com os sinais disponíveis e informa ao usuário qual verificação não pôde ser concluída. Se a faixa resultante dos sinais disponíveis for a verde, ela é elevada para amarelo enquanto a verificação estiver incompleta, conforme detalhado em `docs/score-calibracao.md`.
