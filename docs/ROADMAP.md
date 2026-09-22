@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-18
-- **Última tarefa concluída:** Prompt 1.1 — Esqueleto de navegação entre telas (commit `1c1afaf`)
-- **Próximo passo:** Configuração manual do Firebase (Authentication + Firestore) e, em seguida, Prompt 1.2 — Autenticação
+- **Data:** 2026-09-21
+- **Última tarefa concluída:** Configuração do Firebase — projeto phize-de7a1, Authentication (e-mail/senha), Firestore em modo produção (southamerica-east1) e flutterfire configure (android + web)
+- **Próximo passo:** Prompt 1.2 — Autenticação (versão ajustada)
 
 ---
 
@@ -195,6 +195,9 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | Volume mínimo de texto do OCR | Fase 6 | UC04 |
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
 | ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
+| Bloquear acesso de usuário com e-mail não verificado? | Fase 1 (pode ser revista depois) | RF01 / UC01 |
+
+> Padrão adotado: **não bloquear**, seguindo o UC01.
 
 ---
 
@@ -241,6 +244,28 @@ Navegue por todas as telas. Depois commit.
 > Modo teste deixa o banco aberto para qualquer pessoa ler e escrever por 30 dias.
 > Para um app cujo diferencial declarado é privacidade, é um começo ruim.
 
+### Pré-requisitos (não constavam na versão original)
+
+**[WINDOWS]** Instalar o Node.js LTS (nodejs.org), sem marcar "Tools for Native Modules". Reiniciar o VS Code.
+
+**[TERMINAL]** Se o npm for bloqueado por política de execução:
+```
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+**[TERMINAL]**
+```
+npm install -g firebase-tools
+```
+```
+firebase login
+```
+
+**[WINDOWS]** Adicionar ao PATH do usuário a pasta `C:\Users\<usuario>\AppData\Local\Pub\Cache\bin`, fechar TODAS as janelas do VS Code e reabrir. Verificar com:
+```
+flutterfire --version
+```
+
 **[TERMINAL]**
 ```
 dart pub global activate flutterfire_cli
@@ -249,26 +274,70 @@ dart pub global activate flutterfire_cli
 flutterfire configure
 ```
 
+No `flutterfire configure`, marcar apenas **android** e **web**.
+
+> **Nota:** a `apiKey` presente em `lib/firebase_options.dart` é um identificador público do projeto Firebase, não um segredo; a proteção do banco é feita pelas `firestore.rules`. A regra de não embarcar chaves (seção 2 da arquitetura) se aplica às APIs pagas, que passarão pela Cloud Function na Fase 5.
+
 ### Prompt 1.2 — Autenticação
 
 **[CLAUDE CODE]**
 ```
-Implemente UC01 (cadastro) e UC02 (login) conforme
-@docs/casos-de-uso.md, usando Firebase Authentication.
+Leia o @CLAUDE.md e implemente UC01 (cadastro) e UC02 (login)
+conforme @docs/casos-de-uso.md, usando Firebase Authentication.
 
-Inclua:
-- validação local de força de senha, mínimo 8 caracteres (RF01)
-- envio de e-mail de verificação
-- criação do documento do usuário no Cloud Firestore após o cadastro
-- bloqueio temporário após 5 tentativas falhas consecutivas (RF02)
-- todos os fluxos de exceção descritos no UC01 e UC02:
-  e-mail já cadastrado, senha fora do padrão, credenciais inválidas,
-  falha de conexão
+1. Dependências e inicialização
+- adicione firebase_core, firebase_auth e cloud_firestore
+- inicialize o Firebase no main.dart usando o
+  lib/firebase_options.dart já gerado pelo flutterfire configure
 
-Crie também o arquivo firestore.rules com regras restritivas:
-cada usuário só acessa os próprios documentos.
+2. Cadastro (UC01 / RF01)
+- apenas e-mail e senha; NÃO implemente login social
+  (Google/Apple) neste passo
+- validação local de senha com mínimo de 8 caracteres
+- envio de e-mail de verificação após o cadastro, sem bloquear
+  o acesso (o UC01 redireciona direto ao Dashboard)
+- criação do documento do usuário em users/{uid} no Firestore,
+  contendo SOMENTE uid, e-mail e data de criação (princípio de
+  minimização do RNF01)
 
-Conecte às telas de Login e Cadastro criadas no passo anterior.
+3. Login (UC02 / RF02)
+- opção "Esqueci minha senha" com envio de e-mail de redefinição
+- mensagens de erro genéricas que NUNCA revelem se um e-mail
+  existe na base: use "E-mail ou senha incorretos" para
+  credenciais inválidas, e resposta idêntica na redefinição de
+  senha, exista ou não a conta
+
+4. Bloqueio após 5 tentativas (RF02)
+- a proteção real contra força bruta é a do próprio Firebase
+  Auth: trate o erro too-many-requests com mensagem clara
+- mantenha um contador local de tentativas persistido no
+  dispositivo, que sobreviva ao reinício do app, apenas como
+  camada de interface
+- registre essa decisão no CLAUDE.md, explicando que o contador
+  local não é a barreira de segurança
+
+5. Fluxos de exceção do UC01 e UC02
+e-mail já cadastrado, senha fora do padrão, credenciais
+inválidas, falha de conexão
+
+6. Regras do Firestore
+crie firestore.rules negando tudo por padrão e liberando apenas
+leitura e escrita em users/{uid} quando request.auth.uid == uid.
+Não publique as regras; eu faço isso manualmente.
+
+7. Testes unitários
+- validador de senha, incluindo casos-limite (7 e 8 caracteres,
+  vazia)
+- conversão dos códigos de erro do Firebase em mensagens,
+  provando que nenhuma mensagem revela a existência do e-mail
+- contador de tentativas (incremento, bloqueio na 5ª, reset
+  após login bem-sucedido)
+
+Restrições:
+- nunca registre senha ou e-mail em log ou print
+- conecte às telas de Login e Cadastro já existentes, seguindo
+  a estrutura por feature do CLAUDE.md
+- ao final, liste os arquivos criados e alterados
 ```
 
 **O que revisar no resultado:**
