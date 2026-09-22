@@ -5,6 +5,14 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ---
 
+## ONDE PARAMOS
+
+- **Data:** 2026-09-18
+- **Última tarefa concluída:** Prompt 1.1 — Esqueleto de navegação entre telas (commit `1c1afaf`)
+- **Próximo passo:** Configuração manual do Firebase (Authentication + Firestore) e, em seguida, Prompt 1.2 — Autenticação
+
+---
+
 ## COMO LER ESTE DOCUMENTO
 
 Todo comando ou prompt está marcado com o lugar onde vai:
@@ -76,8 +84,8 @@ Objetivo: fazer o Claude Code conhecer o projeto antes de escrever qualquer cód
 
 - [x] Documentos convertidos para `.md` em `docs/`
 - [x] `CLAUDE.md` gerado e revisado
-- [ ] `docs/BACKLOG.md` gerado
-- [ ] Git inicializado
+- [x] `docs/BACKLOG.md` gerado
+- [x] Git inicializado
 
 ### Prompt 0.1 — CLAUDE.md (feito)
 
@@ -186,13 +194,13 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | Pontos de corte entre as 3 faixas de cor | Fase 2 | RF07 |
 | Volume mínimo de texto do OCR | Fase 6 | UC04 |
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
-| Estrutura de pastas: por camada ou por feature | Fase 1 | — |
+| ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
 
 ---
 
 ## FASE 1 — FUNDAÇÃO
 
-### Prompt 1.1 — Esqueleto de navegação
+### Prompt 1.1 — Esqueleto de navegação (concluído)
 
 **[CLAUDE CODE]**
 ```
