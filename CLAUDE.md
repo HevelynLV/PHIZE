@@ -94,3 +94,33 @@ Em caso de conflito entre o código implementado e o conteúdo dos documentos em
 ## 8. Degradação Controlada
 
 A indisponibilidade de uma fonte externa **não interrompe a análise**. O sistema apresenta o resultado com os sinais disponíveis e informa explicitamente ao usuário qual verificação específica não pôde ser concluída. Referência: seção 6 de `docs/arquitetura.md` e fluxos de exceção do UC03 em `docs/casos-de-uso.md`.
+
+## 9. Nota de Implementação — Contador Local de Tentativas de Login (RF02)
+
+RF02 exige bloqueio temporário após 5 tentativas de login malsucedidas. A
+barreira de segurança real é o próprio Firebase Authentication, que aplica
+throttling server-side e retorna o erro `too-many-requests` quando aciona o
+bloqueio — essa é a proteção efetiva contra força bruta.
+
+`LoginAttemptTracker` (`lib/features/auth/data/login_attempt_tracker.dart`)
+mantém um contador local, persistido no dispositivo via `shared_preferences`,
+que passa a ser a fonte da regra de bloqueio da UI (a própria `LoginPage`
+não decide isso — apenas consulta `tracker.bloqueado()`). Comportamento:
+
+- Ao atingir `LoginAttemptTracker.limiteTentativas` (5) tentativas
+  falhas consecutivas, o horário da 5ª falha é registrado e o botão
+  "Entrar" fica desabilitado, com aviso explícito na tela.
+- O bloqueio é **temporário**: expira automaticamente após
+  `LoginAttemptTracker.duracaoBloqueio` (atualmente 15 minutos), momento em
+  que o contador é zerado e o login volta a ser permitido.
+- **O valor de 15 minutos é provisório**, escolhido para destravar a
+  implementação — pendente de decisão da equipe (mesma categoria das
+  demais pendências listadas em `docs/ROADMAP.md`, seção "Decisões
+  Pendentes da Equipe").
+- É resetado após um login bem-sucedido.
+- Pode divergir do estado real do Firebase (ex.: reinstalar o app zera o
+  contador local, mas não afeta o throttling do lado do servidor).
+
+Mesmo bloqueando o botão na UI, este componente não deve ser tratado como
+mecanismo de segurança — é uma camada de UX sobreposta à proteção real do
+Firebase Auth, e um atacante que ignore o app cliente não é impedido por ele.

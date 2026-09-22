@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-21
-- **Última tarefa concluída:** Configuração do Firebase — projeto phize-de7a1, Authentication (e-mail/senha), Firestore em modo produção (southamerica-east1) e flutterfire configure (android + web)
-- **Próximo passo:** Prompt 1.2 — Autenticação (versão ajustada)
+- **Data:** 2026-09-22
+- **Última tarefa concluída:** Prompt 1.2 — Autenticação (UC01/UC02), 29 testes passando, firestore.rules publicado e validado no Playground de regras
+- **Próximo passo:** Fase 3 — Mascaramento local (RNF07), enquanto a equipe define a tabela de pesos da Fase 2
 
 ---
 
@@ -196,8 +196,18 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
 | ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
 | Bloquear acesso de usuário com e-mail não verificado? | Fase 1 (pode ser revista depois) | RF01 / UC01 |
+| Tempo de expiração do bloqueio de login (provisório: 15 min) | Revisão | RF02 |
+| Bloquear usuário com e-mail não verificado (padrão atual: não) | Revisão | RF01/UC01 |
 
 > Padrão adotado: **não bloquear**, seguindo o UC01.
+
+---
+
+## PENDÊNCIAS TÉCNICAS
+
+- `firestore.rules` não cobre subcoleções de `users/{uid}`; o histórico (Fases 4 e 8) exigirá regra nova.
+- Restringir os campos graváveis em `users/{uid}` aos três previstos (melhoria de segurança).
+- Adicionar ao roadmap os passos de publicação das regras pelo console e teste no Playground.
 
 ---
 
@@ -278,7 +288,7 @@ No `flutterfire configure`, marcar apenas **android** e **web**.
 
 > **Nota:** a `apiKey` presente em `lib/firebase_options.dart` é um identificador público do projeto Firebase, não um segredo; a proteção do banco é feita pelas `firestore.rules`. A regra de não embarcar chaves (seção 2 da arquitetura) se aplica às APIs pagas, que passarão pela Cloud Function na Fase 5.
 
-### Prompt 1.2 — Autenticação
+### Prompt 1.2 — Autenticação (concluído)
 
 **[CLAUDE CODE]**
 ```
@@ -345,6 +355,29 @@ Restrições:
 1. **Bloqueio após 5 tentativas** — se foi implementado só com uma variável na tela, não serve: some quando o app reinicia. Pergunte onde o contador persiste.
 2. **Mensagens de erro** — não podem revelar se o e-mail existe na base. "E-mail ou senha incorretos" é o certo; "senha incorreta" entrega ao atacante que aquela conta existe.
 3. **`firestore.rules`** — precisa ser publicado no console, não basta existir no repositório. Teste tentando ler documento de outro usuário.
+
+### Prompt de auditoria (usar após cada prompt de implementação)
+
+Prompt somente leitura — não pede alterações de código, só compara o que foi pedido com o que existe no repositório.
+
+**[CLAUDE CODE]**
+```
+Não altere nenhum arquivo. Isto é uma auditoria somente leitura.
+
+Releia o prompt de implementação [colar o prompt do passo concluído]
+e compare item por item com o código atual do repositório.
+
+Para cada item do prompt, verifique no código se foi de fato
+implementado, parcialmente implementado ou não implementado, e
+cite o arquivo e trecho que comprova a conclusão (ou a ausência
+dela).
+
+Retorne uma tabela:
+Item | Status | Evidência
+
+Ao final, liste separadamente qualquer desvio em relação ao
+CLAUDE.md ou aos documentos em /docs.
+```
 
 ---
 
