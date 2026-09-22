@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371034844067",
+    "project_id": "phize-de7a1",
+    "storage_bucket": "phize-de7a1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371034844067:android:cb7b5bcd4475bb613c0816",
+        "android_client_info": {
+          "package_name": "com.phize.phize"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtJNTiev7tyrOQ_Q46deGrTsO5kg1V52M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
