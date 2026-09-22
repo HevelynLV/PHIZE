@@ -8,8 +8,8 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 ## ONDE PARAMOS
 
 - **Data:** 2026-09-22
-- **Última tarefa concluída:** decisões do Score de Risco v1.0 registradas em docs/score-calibracao.md
-- **Próximo passo:** Prompt 2.1 — Motor de Score
+- **Última tarefa concluída:** Fase 3, mascaramento local (RNF07)
+- **Próximo passo:** Fase 4, trilha do link (UC03)
 
 ---
 
@@ -212,6 +212,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - Restringir os campos graváveis em `users/{uid}` aos três previstos (melhoria de segurança).
 - Adicionar ao roadmap os passos de publicação das regras pelo console e teste no Playground.
 - Sincronizar os .docx acadêmicos com as alterações de RF07, arquitetura 3.3 e 6, UC03 e relatório 4.8.
+- A rotina de mascaramento local pode lançar `StateError` (falha na restauração do isolamento de URL/domínio). O fluxo do UC04 (Fase 6) deve tratar essa exceção interrompendo a análise, sem expor o texto ao usuário nem a log.
 
 ---
 
@@ -383,6 +384,8 @@ Ao final, liste separadamente qualquer desvio em relação ao
 CLAUDE.md ou aos documentos em /docs.
 ```
 
+A auditoria não pode se limitar a conferir se a suíte de testes passa: deve incluir a execução mental de textos reais de exemplo, cobrindo casos que os testes existentes talvez não previram. Foi esse método — e não a suíte de testes, que passava integralmente — que revelou, na Fase 3, três problemas na rotina de mascaramento local: vazamento de número de cartão sem separadores, corrupção de domínio por dígito colado ao hostname, e colisão do marcador temporário de isolamento de URL.
+
 ---
 
 ## FASE 2 — MOTOR DE SCORE
@@ -393,7 +396,7 @@ Lógica pura em Dart. Sem custo, sem API, 100% testável.
 
 ---
 
-## FASE 3 — MASCARAMENTO LOCAL (RNF07)
+## FASE 3 — MASCARAMENTO LOCAL (RNF07) — concluída
 
 Também lógica pura. Pré-requisito legal de qualquer envio à nuvem.
 
