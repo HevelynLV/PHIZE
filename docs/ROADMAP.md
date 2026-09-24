@@ -201,6 +201,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | Tempo de expiração do bloqueio de login (provisório: 15 min) | Revisão | RF02 |
 | Bloquear usuário com e-mail não verificado (padrão atual: não) | Revisão | RF01/UC01 |
 | Validação da tabela v1.0 (docs/score-calibracao.md) pela equipe | Não bloqueante | RF07 |
+| Ativar o plano Blaze para deploy das Cloud Functions | Publicação e testes em dispositivo real | Fase 5 |
 
 > Padrão adotado: **não bloquear**, seguindo o UC01.
 
@@ -217,6 +218,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - Dois testes de widget anteriores perderam asserções de rótulo e aviso ao eliminar o caminho fictício da tela de Resultado; a cobertura passou para `test/features/analise/presentation/analise_link_flow_test.dart`.
 - A tela de Histórico exibe rótulos de faixa sem o aviso permanente; avaliar na Fase 8 (UC06).
 - Restam dados fictícios fora do fluxo de análise: lista do Histórico e saudação do Dashboard.
+- Migrar do emulador para a Function publicada antes de qualquer teste em Android real ou entrega que não rode na máquina de desenvolvimento.
 
 ---
 
@@ -499,6 +501,14 @@ Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regr
 ---
 
 ## FASE 5 — CAMADA INTERMEDIÁRIA
+
+> **DECISÃO (2026-09-23):** a Cloud Function é desenvolvida e testada com o emulador local do Firebase, sem deploy. O plano Blaze é obrigatório para publicar Functions e exige cartão cadastrado, ainda que a cota gratuita cubra o uso previsto. A decisão de ativar o Blaze fica com a equipe e não bloqueia o desenvolvimento: o código da Function é o mesmo, muda apenas o endereço que o app chama.
+>
+> Consequências enquanto o emulador for usado:
+> - a Function só responde com o emulador rodando na máquina de quem desenvolve
+> - a demonstração precisa do emulador ativo junto com o app
+> - testes em Android real ou por outros integrantes exigem o deploy
+> - a chave do Safe Browsing é gratuita e **NÃO** depende do Blaze
 
 Obrigatória antes de qualquer API paga.
 
