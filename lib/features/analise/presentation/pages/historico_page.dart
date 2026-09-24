@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/routing/app_routes.dart';
 import '../../domain/analise_risco.dart';
 import '../../domain/faixa_risco.dart';
 import '../widgets/phize_bottom_nav.dart';
 
 /// Histórico de análises (RF07 / RNF01): lista apenas o resultado de cada
 /// análise (score, faixa, explicação, data) — nunca o conteúdo original.
-/// Dado fictício embutido, cobrindo as três faixas de risco.
+/// Dado fictício embutido, cobrindo as três faixas de risco, até a
+/// persistência seletiva do histórico (UC06, Fase 8). Sem navegação ao
+/// Resultado: essa tela exibe apenas análises reais de link (UC03), e o
+/// detalhe de um registro do histórico é escopo do UC06.
 class HistoricoPage extends StatelessWidget {
   const HistoricoPage({super.key});
 
@@ -72,11 +74,6 @@ class HistoricoPage extends StatelessWidget {
               ),
               title: Text(analise.faixa.rotulo),
               subtitle: Text(_formatarData(analise.data)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).pushNamed(
-                AppRoutes.resultado,
-                arguments: analise,
-              ),
             ),
           );
         },

@@ -29,6 +29,28 @@ class ConsultaIdadeDominio {
           .consultarDominio(dominioNormalizado)
           .timeout(timeoutConsulta);
 
+      // Validação de identidade da resposta. O Registro.br responde com
+      // redirecionamento (HTTP 303) para domínios de nome parecido — ex.:
+      // "itau-seguranca.com.br" é redirecionado para
+      // "itauseguranca.com.br", registrado em 2009 — e o cliente HTTP segue
+      // o redirecionamento (ver `RdapClientHttp`). Aceitar a resposta
+      // cegamente atribuiria ao endereço analisado a data de registro de
+      // OUTRO domínio, anulando o sinal de domínio recém-criado: justamente
+      // o sinal que a seção 4 da arquitetura usa para cobrir a lacuna do
+      // Safe Browsing em domínios novos. Resposta sem `ldhName` também é
+      // rejeitada: sem ele não há como confirmar a qual domínio a data
+      // pertence.
+      final ldhName = resposta['ldhName'];
+      if (ldhName is! String ||
+          _normalizarFqdn(ldhName) != _normalizarFqdn(dominioNormalizado)) {
+        return const ResultadoConsultaDominio(
+          status: StatusConsultaDominio.naoConcluida,
+          motivoNaoConcluida:
+              'O RDAP respondeu com os dados de outro endereço, não do '
+              'endereço analisado.',
+        );
+      }
+
       final dataRegistro = _extrairDataRegistro(resposta);
       if (dataRegistro == null) {
         return const ResultadoConsultaDominio(
@@ -73,6 +95,15 @@ class ConsultaIdadeDominio {
         motivoNaoConcluida: 'Não foi possível concluir a consulta ao RDAP.',
       );
     }
+  }
+
+  /// Forma canônica de um nome de domínio para comparação: sem diferença de
+  /// maiúsculas e sem o ponto final do FQDN ("Itau.com.br." == "itau.com.br").
+  static String _normalizarFqdn(String dominio) {
+    final minusculo = dominio.toLowerCase();
+    return minusculo.endsWith('.')
+        ? minusculo.substring(0, minusculo.length - 1)
+        : minusculo;
   }
 
   static DateTime? _extrairDataRegistro(Map<String, dynamic> resposta) {

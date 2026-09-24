@@ -1,10 +1,10 @@
 import 'faixa_risco.dart';
 
-/// Resultado de uma análise (RF07), usado como entrada da tela de Resultado.
+/// Registro de uma análise no Histórico (RF07 / RNF01): apenas o resultado,
+/// nunca o conteúdo analisado.
 ///
-/// Layout apenas: nesta fase os valores são fictícios. A Fase 4 substitui a
-/// origem dos dados (função determinística de score) sem alterar a tela,
-/// que apenas renderiza o que recebe aqui.
+/// Por ora alimentado por dado fictício na tela de Histórico; a origem real
+/// (persistência seletiva no Firestore) é a Fase 8 (UC06).
 class AnaliseRisco {
   const AnaliseRisco({
     required this.id,

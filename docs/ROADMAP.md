@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-22
-- **Última tarefa concluída:** Fase 3, mascaramento local (RNF07)
-- **Próximo passo:** Fase 4, trilha do link (UC03)
+- **Data:** 2026-09-23
+- **Última tarefa concluída:** Fase 4 completa (4.1 typosquatting, 4.2 RDAP, 4.3 tela de resultado do UC03), 154 testes passando
+- **Próximo passo:** Fase 5 — camada intermediária (Cloud Function)
 
 ---
 
@@ -213,6 +213,10 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - Adicionar ao roadmap os passos de publicação das regras pelo console e teste no Playground.
 - Sincronizar os .docx acadêmicos com as alterações de RF07, arquitetura 3.3 e 6, UC03 e relatório 4.8.
 - A rotina de mascaramento local pode lançar `StateError` (falha na restauração do isolamento de URL/domínio). O fluxo do UC04 (Fase 6) deve tratar essa exceção interrompendo a análise, sem expor o texto ao usuário nem a log.
+- O cálculo do domínio registrável reconhece apenas `com`/`gov`/`org`/`net`/`edu` sob `.br`. Sufixos como `app.br`, `adv.br` e `co.uk` fazem a consulta RDAP no próprio sufixo, e a idade do domínio nunca é avaliada para eles. Degrada com segurança (verificação não concluída, nunca verde nem data falsa), mas a mensagem ao usuário é imprecisa. Solução futura: lista completa de sufixos públicos.
+- Dois testes de widget anteriores perderam asserções de rótulo e aviso ao eliminar o caminho fictício da tela de Resultado; a cobertura passou para `test/features/analise/presentation/analise_link_flow_test.dart`.
+- A tela de Histórico exibe rótulos de faixa sem o aviso permanente; avaliar na Fase 8 (UC06).
+- Restam dados fictícios fora do fluxo de análise: lista do Histórico e saudação do Dashboard.
 
 ---
 
@@ -386,6 +390,32 @@ CLAUDE.md ou aos documentos em /docs.
 
 A auditoria não pode se limitar a conferir se a suíte de testes passa: deve incluir a execução mental de textos reais de exemplo, cobrindo casos que os testes existentes talvez não previram. Foi esse método — e não a suíte de testes, que passava integralmente — que revelou, na Fase 3, três problemas na rotina de mascaramento local: vazamento de número de cartão sem separadores, corrupção de domínio por dígito colado ao hostname, e colisão do marcador temporário de isolamento de URL.
 
+### Prompt de auditoria de tela (usar após prompts que montam tela)
+
+Complementa o prompt de auditoria acima quando o passo conecta lógica a uma tela. Também somente leitura. Foi a execução do fluxo sobre entradas reais — e não a suíte de testes — que revelou, na Fase 4, a data de registro de outro domínio atribuída ao endereço analisado (redirecionamento do Registro.br).
+
+**[CLAUDE CODE]**
+```
+Auditoria SOMENTE DE LEITURA. Não altere nada.
+
+1. Percorra o código e informe, para cada entrada de exemplo,
+   score, faixa (com o rótulo exibido), sinais e avisos:
+   [listar as entradas: caso legítimo, caso de golpe, caso que
+   soma sinais, entrada inválida, fonte externa fora do ar]
+
+2. Tabela (Item | Status | Evidência com arquivo e trecho):
+   - "Seguro" (ou equivalente) não aparece em nenhuma saída
+   - o aviso permanente aparece em todos os resultados
+   - nada do conteúdo analisado é persistido nem escrito em log,
+     inclusive em mensagens de erro e de verificação não concluída
+   - nada é gravado no Firestore fora do previsto no passo
+   - nenhum teste acessa a rede
+   - nenhum teste anterior foi removido ou enfraquecido
+   - nenhum dado fictício permaneceu como fallback
+
+Conclua em uma frase: fase completa, parcial ou incompleta.
+```
+
 ---
 
 ## FASE 2 — MOTOR DE SCORE
@@ -418,11 +448,11 @@ monetários ou domínios — teste isso também.
 
 ---
 
-## FASE 4 — TRILHA DO LINK (UC03)
+## FASE 4 — TRILHA DO LINK (UC03) — concluída
 
 Primeiro fluxo ponta a ponta. RDAP e análise de anatomia são gratuitos.
 
-### Prompt 4.1 — Typosquatting
+### Prompt 4.1 — Typosquatting (concluído)
 
 **[CLAUDE CODE]**
 ```
@@ -435,7 +465,7 @@ Comece a lista com os 20 principais bancos e serviços do Brasil.
 Testes obrigatórios.
 ```
 
-### Prompt 4.2 — RDAP
+### Prompt 4.2 — RDAP (concluído)
 
 **[CLAUDE CODE]**
 ```
@@ -448,7 +478,7 @@ e informar ao usuário qual verificação não foi concluída
 (degradação controlada, seção 6 da arquitetura).
 ```
 
-### Prompt 4.3 — Tela de resultado
+### Prompt 4.3 — Tela de resultado (concluído)
 
 **[CLAUDE CODE]**
 ```

@@ -159,7 +159,7 @@ void main() {
     );
   });
 
-  testWidgets('Dashboard -> Analisar link -> Resultado', (tester) async {
+  testWidgets('Dashboard -> Analisar link abre a tela de entrada da URL', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         onGenerateRoute: AppRouter.onGenerateRoute,
@@ -177,12 +177,11 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Analisar link'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Resultado da Análise'), findsOneWidget);
-    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
-    expect(find.text(RotulosRisco.avisoPermanente), findsOneWidget);
+    expect(find.byKey(const Key('analisar_link_url')), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Verificar link'), findsOneWidget);
   });
 
-  testWidgets('Histórico mostra as três faixas e navega ao Resultado', (tester) async {
+  testWidgets('Histórico mostra as três faixas', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         onGenerateRoute: AppRouter.onGenerateRoute,
@@ -194,12 +193,5 @@ void main() {
     expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
     expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
     expect(find.text(RotulosRisco.baixoRisco), findsOneWidget);
-
-    await tester.tap(find.text(RotulosRisco.altoRisco));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Resultado da Análise'), findsOneWidget);
-    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
-    expect(find.text(RotulosRisco.avisoPermanente), findsOneWidget);
   });
 }

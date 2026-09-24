@@ -42,7 +42,11 @@ class _RdapClientFalso implements RdapClient {
   }
 }
 
-Map<String, dynamic> _respostaComRegistro(DateTime data) => {
+Map<String, dynamic> _respostaComRegistro(
+  DateTime data, {
+  String ldhName = 'exemplo.com.br',
+}) => {
+  'ldhName': ldhName,
   'events': [
     {'eventAction': 'registration', 'eventDate': data.toIso8601String()},
   ],
@@ -175,7 +179,9 @@ void main() {
     );
 
     test('resposta sem campo de data', () async {
-      final cliente = _RdapClientFalso.comResposta(<String, dynamic>{});
+      final cliente = _RdapClientFalso.comResposta(<String, dynamic>{
+        'ldhName': 'exemplo.com.br',
+      });
       final consulta = ConsultaIdadeDominio(cliente);
 
       final resultado = await consulta.consultar('exemplo.com.br');
@@ -183,6 +189,72 @@ void main() {
       expect(resultado.status, StatusConsultaDominio.naoConcluida);
       expect(resultado.motivoNaoConcluida, isNotNull);
     });
+  });
+
+  group('Identidade da resposta (ldhName)', () {
+    final agora = DateTime(2026, 9, 22);
+    final registroRecente = agora.subtract(const Duration(days: 2));
+
+    test('ldhName diferente do domínio consultado: não concluída, sem data, '
+        'sem marcar como recente', () async {
+      // Caso real do Registro.br: "itau-seguranca.com.br" redirecionado
+      // para "itauseguranca.com.br".
+      final cliente = _RdapClientFalso.comResposta(
+        _respostaComRegistro(
+          registroRecente,
+          ldhName: 'itauseguranca.com.br',
+        ),
+      );
+      final consulta = ConsultaIdadeDominio(cliente, agora: () => agora);
+
+      final resultado = await consulta.consultar('itau-seguranca.com.br');
+
+      expect(resultado.status, StatusConsultaDominio.naoConcluida);
+      expect(resultado.dataRegistro, isNull);
+      expect(resultado.dominioRecente, isFalse);
+      expect(
+        resultado.motivoNaoConcluida,
+        'O RDAP respondeu com os dados de outro endereço, não do endereço '
+        'analisado.',
+      );
+    });
+
+    test('resposta sem ldhName: não concluída, sem data', () async {
+      final resposta = _respostaComRegistro(registroRecente)
+        ..remove('ldhName');
+      final consulta = ConsultaIdadeDominio(
+        _RdapClientFalso.comResposta(resposta),
+        agora: () => agora,
+      );
+
+      final resultado = await consulta.consultar('exemplo.com.br');
+
+      expect(resultado.status, StatusConsultaDominio.naoConcluida);
+      expect(resultado.dataRegistro, isNull);
+      expect(resultado.dominioRecente, isFalse);
+    });
+
+    for (final ldhName in [
+      'EXEMPLO.COM.BR',
+      'Exemplo.Com.Br',
+      'exemplo.com.br.',
+      'EXEMPLO.COM.BR.',
+    ]) {
+      test('ldhName "$ldhName" equivale a "exemplo.com.br": aceito', () async {
+        final consulta = ConsultaIdadeDominio(
+          _RdapClientFalso.comResposta(
+            _respostaComRegistro(registroRecente, ldhName: ldhName),
+          ),
+          agora: () => agora,
+        );
+
+        final resultado = await consulta.consultar('exemplo.com.br');
+
+        expect(resultado.status, StatusConsultaDominio.concluida);
+        expect(resultado.dataRegistro, registroRecente);
+        expect(resultado.dominioRecente, isTrue);
+      });
+    }
   });
 
   group('Nunca lança exceção', () {

@@ -33,6 +33,14 @@ class RdapClientHttp implements RdapClient {
   ) async {
     final uri = construirUriConsulta(dominioNormalizado);
 
+    // Redirecionamentos continuam sendo seguidos automaticamente (padrão do
+    // pacote http): o bootstrap rdap.org funciona justamente redirecionando
+    // para o servidor RDAP autoritativo de cada TLD, e desligá-los quebraria
+    // toda consulta de domínio não ".br". Consequência registrada: um
+    // redirecionamento para OUTRO domínio (o Registro.br faz isso para
+    // nomes parecidos) chega aqui como um 200 comum, e a única proteção
+    // contra atribuir a data de outro domínio ao endereço analisado é a
+    // validação do `ldhName` em `ConsultaIdadeDominio`.
     final http.Response resposta;
     try {
       resposta = await _clienteHttp.get(

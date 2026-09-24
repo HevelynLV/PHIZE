@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../features/analise/domain/analise_risco.dart';
+import '../../features/analise/data/rdap_client_http.dart';
+import '../../features/analise/domain/analisador_link.dart';
+import '../../features/analise/domain/consulta_idade_dominio.dart';
+import '../../features/analise/domain/rdap_client.dart';
+import '../../features/analise/domain/resultado_analise_link.dart';
+import '../../features/analise/presentation/pages/analisar_link_page.dart';
 import '../../features/analise/presentation/pages/dashboard_page.dart';
 import '../../features/analise/presentation/pages/historico_page.dart';
 import '../../features/analise/presentation/pages/resultado_analise_page.dart';
@@ -15,6 +20,7 @@ class AppRouter {
   static Route<void> onGenerateRoute(
     RouteSettings settings, {
     AuthRepository? authRepository,
+    RdapClient? rdapClient,
   }) {
     switch (settings.name) {
       case AppRoutes.login:
@@ -29,10 +35,18 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const DashboardPage());
       case AppRoutes.historico:
         return MaterialPageRoute(builder: (_) => const HistoricoPage());
-      case AppRoutes.resultado:
-        final analise = settings.arguments as AnaliseRisco;
+      case AppRoutes.analisarLink:
         return MaterialPageRoute(
-          builder: (_) => ResultadoAnalisePage(analise: analise),
+          builder: (_) => AnalisarLinkPage(
+            analisadorLink: AnalisadorLink(
+              ConsultaIdadeDominio(rdapClient ?? RdapClientHttp()),
+            ),
+          ),
+        );
+      case AppRoutes.resultado:
+        final resultado = settings.arguments as ResultadoAnaliseLink;
+        return MaterialPageRoute(
+          builder: (_) => ResultadoAnalisePage(resultado: resultado),
         );
       default:
         return MaterialPageRoute(

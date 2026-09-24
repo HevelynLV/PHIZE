@@ -1,28 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/routing/app_routes.dart';
-import '../../domain/analise_risco.dart';
-import '../../domain/faixa_risco.dart';
 import '../widgets/phize_bottom_nav.dart';
 
 /// Painel inicial: ponto de entrada para analisar link ou print (RF03/RF04).
-/// Dado fictício embutido — sem chamada a serviço algum.
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
-
-  static final AnaliseRisco _analiseFicticia = AnaliseRisco(
-    id: 'demo-link',
-    score: 55,
-    faixa: FaixaRisco.medio,
-    explicacao:
-        'A mensagem pede troca de contato para fora do aplicativo oficial e '
-        'menciona uma oferta com retorno acima do praticado no mercado.',
-    sinais: const [
-      'Alegação de troca de contato',
-      'Oferta incompatível com o mercado',
-    ],
-    data: DateTime.now(),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +24,8 @@ class DashboardPage extends StatelessWidget {
             const Text('O que você recebeu e quer verificar?'),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed(
-                AppRoutes.resultado,
-                arguments: _analiseFicticia,
-              ),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(AppRoutes.analisarLink),
               icon: const Icon(Icons.link),
               label: const Text('Analisar link'),
             ),

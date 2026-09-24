@@ -60,6 +60,7 @@ class AnalisadorTyposquatting {
       return ResultadoAnaliseDominio(
         entradaValida: true,
         dominioNormalizado: dominio,
+        dominioRegistravel: dominioRegistravel,
       );
     }
 
@@ -91,6 +92,7 @@ class AnalisadorTyposquatting {
           return ResultadoAnaliseDominio(
             entradaValida: true,
             dominioNormalizado: dominio,
+            dominioRegistravel: dominioRegistravel,
             typosquattingDetectado: true,
             marcaImitada: marca.nome,
           );
@@ -109,6 +111,7 @@ class AnalisadorTyposquatting {
           return ResultadoAnaliseDominio(
             entradaValida: true,
             dominioNormalizado: dominio,
+            dominioRegistravel: dominioRegistravel,
             typosquattingDetectado: true,
             marcaImitada: marca.nome,
           );
@@ -119,6 +122,7 @@ class AnalisadorTyposquatting {
     return ResultadoAnaliseDominio(
       entradaValida: true,
       dominioNormalizado: dominio,
+      dominioRegistravel: dominioRegistravel,
     );
   }
 
