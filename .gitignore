@@ -46,3 +46,15 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Firebase / Cloud Functions
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+.firebase/
+# Chaves de API e variáveis locais — NUNCA versionar (docs/emulador-local.md).
+functions/.env
+functions/.env.*
+functions/.secret.local
+.env
+.env.*

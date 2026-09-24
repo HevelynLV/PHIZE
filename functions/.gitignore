@@ -1,0 +1,7 @@
+node_modules/
+lib/
+
+# Chaves de API e variáveis locais — NUNCA versionar (docs/emulador-local.md).
+.env
+.env.*
+.secret.local

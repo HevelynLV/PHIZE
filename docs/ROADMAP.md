@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-23
-- **Última tarefa concluída:** Fase 4 completa (4.1 typosquatting, 4.2 RDAP, 4.3 tela de resultado do UC03), 154 testes passando
-- **Próximo passo:** Fase 5 — camada intermediária (Cloud Function)
+- **Data:** 2026-09-24
+- **Última tarefa concluída:** Fase 5 — camada intermediária com endpoint de reputação validado
+- **Próximo passo:** Fase 5.1 — Conectar o Safe Browsing à tela de resultado
 
 ---
 
@@ -219,6 +219,12 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - A tela de Histórico exibe rótulos de faixa sem o aviso permanente; avaliar na Fase 8 (UC06).
 - Restam dados fictícios fora do fluxo de análise: lista do Histórico e saudação do Dashboard.
 - Migrar do emulador para a Function publicada antes de qualquer teste em Android real ou entrega que não rode na máquina de desenvolvimento.
+- Restringir no console as chaves públicas do Firebase às APIs do Firebase, impedindo que sejam usadas para chamar o Safe Browsing direto e contornar a Function.
+- O contador de rate limiting é mantido em memória e zera a cada reinício da Function; migrar para armazenamento compartilhado antes do deploy com mais de uma instância.
+- O mapa do rate limiting nunca remove usuários antigos.
+- Chamadas com URL inválida consomem o limite antes da validação; comportamento deliberado, a documentar.
+- ~~A Function nunca foi exercitada contra o Safe Browsing real; validar com a chave configurada.~~ — **resolvida: validada em 2026-09-24, ver Fase 5**
+- A Function passou a receber caminho de URL além do domínio; avaliar se o ciclo de vida desse dado merece registro próprio na documentação, já que o RNF07 trata apenas do texto de OCR.
 
 ---
 
@@ -500,7 +506,7 @@ Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regr
 
 ---
 
-## FASE 5 — CAMADA INTERMEDIÁRIA
+## FASE 5 — CAMADA INTERMEDIÁRIA — concluída
 
 > **DECISÃO (2026-09-23):** a Cloud Function é desenvolvida e testada com o emulador local do Firebase, sem deploy. O plano Blaze é obrigatório para publicar Functions e exige cartão cadastrado, ainda que a cota gratuita cubra o uso previsto. A decisão de ativar o Blaze fica com a equipe e não bloqueia o desenvolvimento: o código da Function é o mesmo, muda apenas o endereço que o app chama.
 >
@@ -509,6 +515,12 @@ Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regr
 > - a demonstração precisa do emulador ativo junto com o app
 > - testes em Android real ou por outros integrantes exigem o deploy
 > - a chave do Safe Browsing é gratuita e **NÃO** depende do Blaze
+
+> **ESCOPO DIVIDIDO:** nesta fase foi implementado o endpoint de reputação (Safe Browsing), que recebe a URL normalizada; o nome `reputacaoDominio` foi mantido por decisão. Os endpoints de OCR e de LLM são acrescentados à mesma Function nas Fases 6 e 7, quando houver consumidor real para eles.
+
+> **VALIDAÇÃO (2026-09-24):** a consulta foi validada contra o Safe Browsing real, pela Function no emulador, com usuário autenticado no Auth emulado (`docs/emulador-local.md`). Os endereços oficiais de teste do Google retornaram listado, e um domínio legítimo retornou não listado.
+
+> **DECISÃO — escopo da consulta de reputação:** a Function recebe a URL normalizada com domínio e caminho; a query string e o fragmento são descartados no dispositivo, antes da transmissão (arquitetura, seção 4, etapa 2). Motivo: os endereços de teste só aparecem como listados com o caminho completo, o que confirma que enviar apenas o domínio deixaria passar golpes hospedados em caminho de site legítimo. RDAP e typosquatting continuam usando só o domínio.
 
 Obrigatória antes de qualquer API paga.
 
@@ -523,6 +535,12 @@ no pacote do aplicativo (seção 2 da arquitetura).
 O app autentica na Function via token do Firebase Auth.
 Inclua rate limiting por usuário.
 ```
+
+---
+
+## FASE 5.1 — CONECTAR O SAFE BROWSING À TELA DE RESULTADO
+
+Substituir o marcador provisório da Fase 4 em `analisador_link.dart` pela consulta real, passando o sinal ao motor de score conforme `docs/score-calibracao.md`, e remover a condição de verificação sempre incompleta para a reputação.
 
 ---
 
