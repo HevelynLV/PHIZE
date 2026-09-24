@@ -12,7 +12,7 @@ class DashboardPage extends StatelessWidget {
 
   static final AnaliseRisco _analiseFicticia = AnaliseRisco(
     id: 'demo-link',
-    score: 62,
+    score: 55,
     faixa: FaixaRisco.medio,
     explicacao:
         'A mensagem pede troca de contato para fora do aplicativo oficial e '
