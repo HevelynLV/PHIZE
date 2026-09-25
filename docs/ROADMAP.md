@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-24
-- **Última tarefa concluída:** Fase 5 — camada intermediária com endpoint de reputação validado
-- **Próximo passo:** Fase 5.1 — Conectar o Safe Browsing à tela de resultado
+- **Data:** 2026-09-25
+- **Última tarefa concluída:** Fase 5.1 — Safe Browsing conectado à tela de resultado
+- **Próximo passo:** Fase 6 — Trilha do print (UC04)
 
 ---
 
@@ -500,7 +500,7 @@ a análise não substitui verificação junto à instituição.
 Ainda sem Safe Browsing e sem LLM.
 ```
 
-Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regra do score v1.0, nunca resulta em verde. Comportamento esperado, não é bug.
+Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regra do score v1.0, nunca resulta em verde. Comportamento esperado, não é bug. Essa limitação valeu apenas até a Fase 5.1, quando o Safe Browsing foi conectado e a faixa verde voltou a ser possível.
 
 **Marco:** aqui o app já é demonstrável, sem ter gasto um centavo.
 
@@ -538,7 +538,9 @@ Inclua rate limiting por usuário.
 
 ---
 
-## FASE 5.1 — CONECTAR O SAFE BROWSING À TELA DE RESULTADO
+## FASE 5.1 — CONECTAR O SAFE BROWSING À TELA DE RESULTADO — concluída
+
+> **VALIDAÇÃO (2026-09-25):** a faixa verde foi validada no app, com as três verificações (typosquatting, RDAP e Safe Browsing) concluindo sem sinais.
 
 Substituir o marcador provisório da Fase 4 em `analisador_link.dart` pela consulta real, passando o sinal ao motor de score conforme `docs/score-calibracao.md`, e remover a condição de verificação sempre incompleta para a reputação.
 

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../features/analise/data/rdap_client_http.dart';
+import '../../features/analise/data/reputacao_dominio_client_http.dart';
 import '../../features/analise/domain/analisador_link.dart';
 import '../../features/analise/domain/consulta_idade_dominio.dart';
+import '../../features/analise/domain/consulta_reputacao_dominio.dart';
 import '../../features/analise/domain/rdap_client.dart';
+import '../../features/analise/domain/reputacao_dominio_client.dart';
 import '../../features/analise/domain/resultado_analise_link.dart';
 import '../../features/analise/presentation/pages/analisar_link_page.dart';
 import '../../features/analise/presentation/pages/dashboard_page.dart';
@@ -21,6 +24,7 @@ class AppRouter {
     RouteSettings settings, {
     AuthRepository? authRepository,
     RdapClient? rdapClient,
+    ReputacaoDominioClient? reputacaoClient,
   }) {
     switch (settings.name) {
       case AppRoutes.login:
@@ -40,6 +44,10 @@ class AppRouter {
           builder: (_) => AnalisarLinkPage(
             analisadorLink: AnalisadorLink(
               ConsultaIdadeDominio(rdapClient ?? RdapClientHttp()),
+              ConsultaReputacaoDominio(
+                reputacaoClient ??
+                    ReputacaoDominioClientHttp.comFirebaseAuth(),
+              ),
             ),
           ),
         );

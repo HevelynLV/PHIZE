@@ -44,22 +44,41 @@ class ResultadoAnalisePage extends StatelessWidget {
                 (v) => _VerificacaoTile(verificacao: v),
               ),
               const SizedBox(height: 24),
-              Card(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.info_outline),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(RotulosRisco.avisoPermanente)),
-                    ],
-                  ),
-                ),
+              const _Aviso(
+                key: Key('resultado_aviso_falibilidade'),
+                texto: RotulosRisco.avisoFalibilidadeReputacao,
+              ),
+              const SizedBox(height: 12),
+              const _Aviso(
+                key: Key('resultado_aviso_permanente'),
+                texto: RotulosRisco.avisoPermanente,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Aviso extends StatelessWidget {
+  const _Aviso({super.key, required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline),
+            const SizedBox(width: 12),
+            Expanded(child: Text(texto)),
+          ],
         ),
       ),
     );

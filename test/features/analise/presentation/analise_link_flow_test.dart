@@ -6,6 +6,7 @@ import 'package:phize/core/routing/app_router.dart';
 import 'package:phize/core/routing/app_routes.dart';
 import 'package:phize/features/analise/domain/calculadora_score.dart';
 import 'package:phize/features/analise/domain/rdap_client.dart';
+import 'package:phize/features/analise/domain/reputacao_dominio_client.dart';
 import 'package:phize/features/analise/domain/resultado_analise_link.dart';
 import 'package:phize/features/analise/domain/rotulos_risco.dart';
 import 'package:phize/features/analise/domain/sinais_identificados.dart';
@@ -64,14 +65,56 @@ _RdapClientFalso _rdapIndisponivel() => _RdapClientFalso(
   erro: const RdapIndisponivelException('serviço fora do ar'),
 );
 
+/// Dublê da Function `reputacaoDominio`: nenhum teste deste arquivo acessa
+/// a rede. Registra cada URL recebida, para provar que a normalização
+/// (sem query nem fragmento) ocorre antes da transmissão.
+class _ReputacaoClientFalso implements ReputacaoDominioClient {
+  _ReputacaoClientFalso.comResposta(Map<String, dynamic> resposta)
+    : _resposta = resposta,
+      _erro = null;
+
+  _ReputacaoClientFalso.comErro(Object erro) : _resposta = null, _erro = erro;
+
+  final Map<String, dynamic>? _resposta;
+  final Object? _erro;
+
+  final List<String> urlsConsultadas = [];
+
+  @override
+  Future<Map<String, dynamic>> consultarUrl(String urlNormalizada) {
+    urlsConsultadas.add(urlNormalizada);
+    final erro = _erro;
+    if (erro != null) return Future.error(erro);
+    return Future.value(_resposta);
+  }
+}
+
+_ReputacaoClientFalso _reputacaoNaoListado() =>
+    _ReputacaoClientFalso.comResposta({'status': 'nao_listado'});
+
+_ReputacaoClientFalso _reputacaoListado() =>
+    _ReputacaoClientFalso.comResposta({
+      'status': 'listado',
+      'tiposAmeaca': ['SOCIAL_ENGINEERING'],
+    });
+
+_ReputacaoClientFalso _reputacaoIndisponivel() => _ReputacaoClientFalso.comErro(
+  const ReputacaoIndisponivelException('Function fora do ar'),
+);
+
 Future<void> _abrirAnalisarLink(
   WidgetTester tester,
-  RdapClient rdapClient,
-) async {
+  RdapClient rdapClient, {
+  ReputacaoDominioClient? reputacaoClient,
+}) async {
+  final reputacao = reputacaoClient ?? _reputacaoNaoListado();
   await tester.pumpWidget(
     MaterialApp(
-      onGenerateRoute: (settings) =>
-          AppRouter.onGenerateRoute(settings, rdapClient: rdapClient),
+      onGenerateRoute: (settings) => AppRouter.onGenerateRoute(
+        settings,
+        rdapClient: rdapClient,
+        reputacaoClient: reputacao,
+      ),
       initialRoute: AppRoutes.analisarLink,
     ),
   );
@@ -81,9 +124,14 @@ Future<void> _abrirAnalisarLink(
 Future<void> _analisar(
   WidgetTester tester,
   RdapClient rdapClient,
-  String entrada,
-) async {
-  await _abrirAnalisarLink(tester, rdapClient);
+  String entrada, {
+  ReputacaoDominioClient? reputacaoClient,
+}) async {
+  await _abrirAnalisarLink(
+    tester,
+    rdapClient,
+    reputacaoClient: reputacaoClient,
+  );
   await tester.enterText(find.byKey(const Key('analisar_link_url')), entrada);
   await tester.tap(find.byKey(const Key('analisar_link_botao')));
   await tester.pumpAndSettle();
@@ -96,30 +144,181 @@ final _termoProibido = RegExp(r'\bsegur[oa]s?\b', caseSensitive: false);
 void _verificarInvariantesDoResultado() {
   expect(find.text('Resultado da Análise'), findsOneWidget);
   expect(find.text(RotulosRisco.avisoPermanente), findsOneWidget);
+  expect(find.text(RotulosRisco.avisoFalibilidadeReputacao), findsOneWidget);
   expect(find.textContaining(_termoProibido), findsNothing);
 }
 
+const _fonteGoogle = 'Fonte: Google Safe Browsing, serviço do Google';
+
 void main() {
-  testWidgets('URL legítima de banco: amarelo, nunca verde, com aviso de '
-      'verificação incompleta', (tester) async {
+  testWidgets('domínio legítimo, três verificações concluídas sem sinais: '
+      'faixa VERDE, sem aviso de verificação incompleta', (tester) async {
     final rdap = _rdapDominioAntigo();
-    await _analisar(tester, rdap, 'https://www.itau.com.br/conta?x=1');
+    final reputacao = _reputacaoNaoListado();
+    await _analisar(
+      tester,
+      rdap,
+      'https://www.itau.com.br/conta?x=1#topo',
+      reputacaoClient: reputacao,
+    );
 
     _verificarInvariantesDoResultado();
     expect(rdap.dominiosConsultados, ['itau.com.br']);
-    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
-    expect(find.text(RotulosRisco.baixoRisco), findsNothing);
+    // Query string e fragmento descartados antes da transmissão; o caminho
+    // é preservado (arquitetura, seção 4, etapa 2).
+    expect(reputacao.urlsConsultadas, ['https://www.itau.com.br/conta']);
+    expect(find.text('Score de Risco: 0/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.baixoRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.medioRisco), findsNothing);
+    expect(
+      find.byKey(const Key('resultado_verificacao_incompleta')),
+      findsNothing,
+    );
+    expect(find.textContaining('Verificação não concluída'), findsNothing);
+    expect(
+      find.textContaining(
+        'Nenhum sinal de risco nesta verificação. Segundo o Google, este '
+        'endereço não aparece na lista',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining(_fonteGoogle), findsOneWidget);
+  });
+
+  testWidgets('domínio listado como malicioso: faixa vermelha, com o sinal '
+      'listado e a fonte atribuída ao Google', (tester) async {
+    final reputacao = _reputacaoListado();
+    await _analisar(
+      tester,
+      _rdapDominioAntigo(),
+      'exemplo-qualquer.org/pagar',
+      reputacaoClient: reputacao,
+    );
+
+    _verificarInvariantesDoResultado();
+    expect(reputacao.urlsConsultadas, ['http://exemplo-qualquer.org/pagar']);
+    expect(find.text('Score de Risco: 70/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Sinal de risco encontrado. Segundo o Google, este endereço aparece '
+        'na lista de endereços identificados como possivelmente perigosos. '
+        'Motivo apontado: página que tenta enganar as pessoas',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining(_fonteGoogle), findsOneWidget);
+    // Nenhuma categoria técnica chega à tela.
+    expect(find.textContaining('SOCIAL_ENGINEERING'), findsNothing);
+    expect(
+      find.byKey(const Key('resultado_verificacao_incompleta')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('domínio listado somado a typosquatting: score com teto de '
+      '100', (tester) async {
+    await _analisar(
+      tester,
+      _rdapDominioAntigo(),
+      'https://itau-seguranca.com/login',
+      reputacaoClient: _reputacaoListado(),
+    );
+
+    _verificarInvariantesDoResultado();
+    expect(find.text('Score de Risco: 100/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    expect(find.textContaining('Sinal de risco encontrado'), findsNWidgets(2));
+  });
+
+  testWidgets('domínio listado, typosquatting e domínio recente: score com '
+      'teto de 100', (tester) async {
+    await _analisar(
+      tester,
+      _rdapDominioRecente(),
+      'https://itau-seguranca.com/login',
+      reputacaoClient: _reputacaoListado(),
+    );
+
+    _verificarInvariantesDoResultado();
+    expect(find.text('Score de Risco: 100/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    expect(find.textContaining('Sinal de risco encontrado'), findsNWidgets(3));
+  });
+
+  testWidgets('reputação não concluída, sem outros sinais: faixa elevada de '
+      'verde para amarelo, com aviso', (tester) async {
+    await _analisar(
+      tester,
+      _rdapDominioAntigo(),
+      'https://www.itau.com.br/conta',
+      reputacaoClient: _reputacaoIndisponivel(),
+    );
+
+    expect(tester.takeException(), isNull);
+    _verificarInvariantesDoResultado();
     // A pontuação real (0) é preservada; só a faixa é elevada.
     expect(find.text('Score de Risco: 0/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
+    expect(find.text(RotulosRisco.baixoRisco), findsNothing);
     expect(
       find.byKey(const Key('resultado_verificacao_incompleta')),
       findsOneWidget,
     );
     expect(
-      find.textContaining('Lista de endereços perigosos'),
-      findsWidgets,
+      find.textContaining(
+        'Não foi possível concluir: Lista de endereços perigosos.',
+      ),
+      findsOneWidget,
     );
-    expect(find.textContaining('Fonte: Google Safe Browsing'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Verificação não concluída. Não foi possível consultar a lista de '
+        'endereços já identificados como perigosos pelo Google. O Google '
+        'Safe Browsing não pôde ser consultado agora.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining(_fonteGoogle), findsOneWidget);
+  });
+
+  testWidgets('reputação não concluída, com typosquatting: 40 pontos, faixa '
+      'amarela conforme a calibragem', (tester) async {
+    await _analisar(
+      tester,
+      _rdapDominioAntigo(),
+      'https://itau-seguranca.com/login',
+      reputacaoClient: _reputacaoIndisponivel(),
+    );
+
+    _verificarInvariantesDoResultado();
+    expect(find.text('Score de Risco: 40/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.medioRisco), findsOneWidget);
+    expect(
+      find.byKey(const Key('resultado_verificacao_incompleta')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('reputação não concluída, com typosquatting e domínio '
+      'recente: 65 pontos, faixa vermelha conforme a calibragem', (
+    tester,
+  ) async {
+    await _analisar(
+      tester,
+      _rdapDominioRecente(),
+      'https://itau-seguranca.com/login',
+      reputacaoClient: _reputacaoIndisponivel(),
+    );
+
+    _verificarInvariantesDoResultado();
+    expect(find.text('Score de Risco: 65/100'), findsOneWidget);
+    expect(find.text(RotulosRisco.altoRisco), findsOneWidget);
+    // A verificação incompleta continua informada, mesmo fora do verde.
+    expect(
+      find.byKey(const Key('resultado_verificacao_incompleta')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('domínio com typosquatting e recém-criado: sinais somados, '
@@ -181,7 +380,13 @@ void main() {
     tester,
   ) async {
     final rdap = _rdapDominioAntigo();
-    await _analisar(tester, rdap, 'isso não é um link');
+    final reputacao = _reputacaoNaoListado();
+    await _analisar(
+      tester,
+      rdap,
+      'isso não é um link',
+      reputacaoClient: reputacao,
+    );
 
     expect(tester.takeException(), isNull);
     expect(
@@ -190,6 +395,7 @@ void main() {
     );
     expect(find.text('Resultado da Análise'), findsNothing);
     expect(rdap.dominiosConsultados, isEmpty);
+    expect(reputacao.urlsConsultadas, isEmpty);
 
     // O app segue utilizável: uma nova submissão válida funciona.
     await tester.enterText(
@@ -250,26 +456,59 @@ void main() {
   });
 
   group('Invariantes de toda tela de resultado', () {
-    final cenariosDoFluxo = <String, (RdapClient Function(), String)>{
-      'banco legítimo': (_rdapDominioAntigo, 'itau.com.br'),
-      'typosquatting recente': (_rdapDominioRecente, 'nubannk.com'),
-      'RDAP indisponível': (_rdapIndisponivel, 'bradesco.com.br'),
-      'domínio sem sinal': (_rdapDominioAntigo, 'exemplo-qualquer.org'),
-    };
+    final cenariosDoFluxo =
+        <
+          String,
+          (RdapClient Function(), ReputacaoDominioClient Function(), String)
+        >{
+          'banco legítimo': (
+            _rdapDominioAntigo,
+            _reputacaoNaoListado,
+            'itau.com.br',
+          ),
+          'typosquatting recente': (
+            _rdapDominioRecente,
+            _reputacaoNaoListado,
+            'nubannk.com',
+          ),
+          'RDAP indisponível': (
+            _rdapIndisponivel,
+            _reputacaoNaoListado,
+            'bradesco.com.br',
+          ),
+          'domínio sem sinal': (
+            _rdapDominioAntigo,
+            _reputacaoNaoListado,
+            'exemplo-qualquer.org',
+          ),
+          'domínio listado': (
+            _rdapDominioAntigo,
+            _reputacaoListado,
+            'exemplo-qualquer.org',
+          ),
+          'reputação indisponível': (
+            _rdapDominioAntigo,
+            _reputacaoIndisponivel,
+            'itau.com.br',
+          ),
+          'todas as fontes indisponíveis': (
+            _rdapIndisponivel,
+            _reputacaoIndisponivel,
+            'nubannk.com',
+          ),
+        };
 
-    for (final MapEntry(key: nome, value: (rdap, url))
+    for (final MapEntry(key: nome, value: (rdap, reputacao, url))
         in cenariosDoFluxo.entries) {
-      testWidgets('fluxo "$nome": sem "Seguro" e com aviso permanente', (
-        tester,
-      ) async {
-        await _analisar(tester, rdap(), url);
+      testWidgets('fluxo "$nome": sem "Seguro", com aviso permanente e aviso '
+          'de falibilidade', (tester) async {
+        await _analisar(tester, rdap(), url, reputacaoClient: reputacao());
         _verificarInvariantesDoResultado();
       });
     }
 
-    // A faixa verde é inalcançável pelo fluxo de link enquanto o Safe
-    // Browsing não existir; a tela é exercitada diretamente nas três faixas
-    // para garantir a rotulagem também nela.
+    // A tela também é exercitada diretamente nas três faixas, independente
+    // do fluxo, para garantir a rotulagem e os avisos nela.
     final sinaisPorFaixa = <String, SinaisIdentificados>{
       'verde': const SinaisIdentificados(),
       'amarela': const SinaisIdentificados(link: {SinalLink.typosquatting}),
