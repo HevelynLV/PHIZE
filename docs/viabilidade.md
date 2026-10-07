@@ -22,7 +22,7 @@ Além do ambiente acadêmico, diversos atores possuem interesse direto no sucess
 
 - **Usuários finais (vítimas em potencial):** Especialmente idosos e pessoas com menor letramento digital, que buscam proteção prática e vereditos de segurança rápidos.
 
-- **Empresas de tecnologia em IA:** Atuam como parceiros fundamentais para o fornecimento de APIs de processamento visual (OCR) e Processamento de Linguagem Natural (ex.: Google Cloud Vision, Google Gemini, OpenAI), cuja seleção está condicionada à oferta de termos contratuais que vedem o uso do conteúdo submetido para treinamento de modelos, conforme RNF07.
+- **Empresas de tecnologia em IA:** Atuam como parceiros fundamentais para o fornecimento de APIs de Processamento de Linguagem Natural (ex.: Google Gemini, OpenAI) e da biblioteca de reconhecimento de texto embarcada (Google ML Kit Text Recognition), executada no próprio dispositivo sem transmissão da imagem. A seleção do provedor de linguagem está condicionada à oferta de termos contratuais que vedem o uso do conteúdo submetido para treinamento de modelos, conforme RNF07.
 
 - **Instituições Financeiras e Fintechs:** Entidades bancárias que poderiam integrar a tecnologia em seus ecossistemas para reduzir o volume de fraudes via PIX contra seus clientes.
 
@@ -44,9 +44,9 @@ Para assegurar a execução sustentável do projeto, os desafios de implementaç
 
 **4.1 Viabilidade Técnica**
 
-- **Desafio:** O processamento ininterrupto de imagens (via OCR) acoplado à análise por Grandes Modelos de Linguagem (LLM) possui o potencial de gerar alta latência de resposta e custos elevados de infraestrutura em servidores.
+- **Desafio:** Com a extração de caracteres executada no próprio dispositivo, o custo e a latência do envio de imagens à nuvem deixaram de existir. Permanecem, porém, o custo recorrente e a latência da inferência por Grandes Modelos de Linguagem (LLM), etapa remota que domina o tempo de resposta. Surge, ainda, um custo de processamento local no aparelho do usuário: o reconhecimento embarcado consome processamento e memória do dispositivo, aumenta o tamanho do pacote do aplicativo e tem duração variável conforme o hardware, podendo ser mais lento em aparelhos de entrada.
 
-- **Solução:** Iniciar o Produto Mínimo Viável (MVP) utilizando modelos de linguagem otimizados e APIs de baixo custo. A arquitetura priorizará o processamento do texto já extraído localmente, reduzindo drasticamente o volume de dados brutos enviados para a nuvem.
+- **Solução:** Executar a extração de caracteres no próprio dispositivo, por reconhecimento de texto embarcado, o que elimina o custo de infraestrutura dessa etapa e o envio de imagens à nuvem; apenas o texto extraído, previamente mascarado, é transmitido. O único custo operacional recorrente passa a ser o do modelo de linguagem, para o qual o Produto Mínimo Viável (MVP) adota modelos otimizados e APIs de baixo custo.
 
 **4.2 Viabilidade de Mercado**
 

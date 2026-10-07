@@ -7,9 +7,9 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 
 ## ONDE PARAMOS
 
-- **Data:** 2026-09-25
-- **Última tarefa concluída:** Fase 5.1 — Safe Browsing conectado à tela de resultado
-- **Próximo passo:** Fase 6 — Trilha do print (UC04)
+- **Data:** 2026-10-07
+- **Última tarefa concluída:** Prompt 6.1 — captura de imagem com Zero-Persistence (235 testes)
+- **Próximo passo:** Prompt 6.2 — OCR e pipeline do UC04
 
 ---
 
@@ -61,6 +61,7 @@ O desenvolvimento começa pelo **Chrome** (`flutter run -d chrome`). O Android s
 **Itens que NÃO funcionam na web** e exigirão teste em Android real:
 - RF10 / UC11 — compartilhamento nativo
 - UC04 — seleção de imagem da galeria
+- UC04 / RNF06 — reconhecimento de texto embarcado (Google ML Kit Text Recognition)
 
 Depois de instalar o Android Studio:
 
@@ -194,7 +195,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | ~~Pontos de corte entre as 3 faixas de cor~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
 | ~~Limite de domínio recém-criado~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
 | ~~Regra de verificação incompleta~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
-| Volume mínimo de texto do OCR | Fase 6 | UC04 |
+| ~~Volume mínimo de texto do OCR~~ — **decidido: v1.0, ver docs/limite-texto-ocr.md** | ~~Fase 6~~ Resolvida | UC04 |
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
 | ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
 | Bloquear acesso de usuário com e-mail não verificado? | Fase 1 (pode ser revista depois) | RF01 / UC01 |
@@ -202,6 +203,9 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | Bloquear usuário com e-mail não verificado (padrão atual: não) | Revisão | RF01/UC01 |
 | Validação da tabela v1.0 (docs/score-calibracao.md) pela equipe | Não bloqueante | RF07 |
 | Ativar o plano Blaze para deploy das Cloud Functions | Publicação e testes em dispositivo real | Fase 5 |
+| ~~Provedor de LLM com termos que vedem uso para treinamento (RNF07)~~ — **decidido: contratado** | ~~Fase 6.2~~ Resolvida | custo recorrente |
+| ~~Ativar Cloud Vision e criar chave restrita~~ — **dispensado: OCR embarcado (decisão de 2026-10-07)** | ~~Fase 6.2~~ Resolvida | console |
+| Validação da troca do OCR para reconhecimento embarcado (ML Kit), decisão de 2026-10-07 | Não bloqueante | RNF06 |
 
 > Padrão adotado: **não bloquear**, seguindo o UC01.
 
@@ -225,6 +229,13 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - Chamadas com URL inválida consomem o limite antes da validação; comportamento deliberado, a documentar.
 - ~~A Function nunca foi exercitada contra o Safe Browsing real; validar com a chave configurada.~~ — **resolvida: validada em 2026-09-24, ver Fase 5**
 - A Function passou a receber caminho de URL além do domínio; avaliar se o ciclo de vida desse dado merece registro próprio na documentação, já que o RNF07 trata apenas do texto de OCR.
+- Conectar o RAG ao fluxo do UC04 na Fase 7; o Prompt 6.2 é implementado sem recuperação na base de conhecimento (ver decisão de 2026-10-07 na Fase 6).
+- A limpeza de cópias órfãs do seletor cobre apenas Android; no iOS o seletor grava em `tmp/` e isso não foi tratado nem validado.
+- A remoção real do temporário nunca foi validada em dispositivo ou emulador Android; os testes usam sistema de arquivos em memória.
+- Quando o fluxo for ligado à tela (6.2), avaliar a coincidência de tempo entre a limpeza da inicialização e uma seleção em curso.
+- A camada de tela não pode exibir nem gravar em log a `FileSystemException` da captura: a mensagem traz o caminho do temporário, que inclui o nome original do print.
+- Validar a precisão do reconhecimento embarcado (ML Kit) com prints reais de WhatsApp e SMS, em tema claro e escuro, antes de considerar o RNF06 cumprido.
+- A arquitetura (3.2) não define onde o texto analisado é convertido em embedding para a recuperação RAG. Se a conversão ocorrer por API, haverá uma segunda etapa remota, o que afeta o RNF03 e exige registro no ciclo de vida do dado textual do RNF07. Definir na Fase 7.
 
 ---
 
@@ -516,13 +527,17 @@ Sem Safe Browsing (Fase 5), a verificação de link fica incompleta e, pela regr
 > - testes em Android real ou por outros integrantes exigem o deploy
 > - a chave do Safe Browsing é gratuita e **NÃO** depende do Blaze
 
-> **ESCOPO DIVIDIDO:** nesta fase foi implementado o endpoint de reputação (Safe Browsing), que recebe a URL normalizada; o nome `reputacaoDominio` foi mantido por decisão. Os endpoints de OCR e de LLM são acrescentados à mesma Function nas Fases 6 e 7, quando houver consumidor real para eles.
+> **ESCOPO DIVIDIDO:** nesta fase foi implementado o endpoint de reputação (Safe Browsing), que recebe a URL normalizada; o nome `reputacaoDominio` foi mantido por decisão. Os endpoints de OCR e de LLM são acrescentados à mesma Function nas Fases 6 e 7, quando houver consumidor real para eles. **[Superado pela decisão de 2026-10-07 quanto ao endpoint de OCR — ver ATUALIZAÇÃO abaixo.]**
+
+> **ATUALIZAÇÃO (2026-10-07):** com a troca para OCR embarcado (decisão registrada na Fase 6), o endpoint de OCR não será necessário. Apenas o endpoint de LLM é acrescentado à Function, na Fase 6.2.
 
 > **VALIDAÇÃO (2026-09-24):** a consulta foi validada contra o Safe Browsing real, pela Function no emulador, com usuário autenticado no Auth emulado (`docs/emulador-local.md`). Os endereços oficiais de teste do Google retornaram listado, e um domínio legítimo retornou não listado.
 
 > **DECISÃO — escopo da consulta de reputação:** a Function recebe a URL normalizada com domínio e caminho; a query string e o fragmento são descartados no dispositivo, antes da transmissão (arquitetura, seção 4, etapa 2). Motivo: os endereços de teste só aparecem como listados com o caminho completo, o que confirma que enviar apenas o domínio deixaria passar golpes hospedados em caminho de site legítimo. RDAP e typosquatting continuam usando só o domínio.
 
 Obrigatória antes de qualquer API paga.
+
+> **[Superado pela decisão de 2026-10-07 quanto ao Vision:]** o prompt abaixo é mantido como registro histórico. O proxy para a API de visão não será implementado, pois o OCR passou a ser embarcado no dispositivo; a Function atende apenas Safe Browsing e LLM.
 
 **[CLAUDE CODE]**
 ```
@@ -550,7 +565,7 @@ Substituir o marcador provisório da Fase 4 em `analisador_link.dart` pela consu
 
 **A partir daqui o Android é obrigatório.**
 
-### Prompt 6.1 — Captura e descarte
+### Prompt 6.1 — Captura e descarte (concluído)
 
 **[CLAUDE CODE]**
 ```
@@ -562,13 +577,75 @@ finally executado inclusive em caso de falha.
 Escreva o teste que prova o descarte no caminho de exceção.
 ```
 
-### Prompt 6.2 — OCR e pipeline
+Após a auditoria, que apontou cópias órfãs do seletor em caso de falha na remoção ou fechamento do app no meio do fluxo:
 
 **[CLAUDE CODE]**
 ```
-Conecte o fluxo do UC04: imagem → OCR via proxy → descarte
-da imagem → verificação de suficiência do texto → mascaramento
-local (Fase 3) → envio ao LLM → score (Fase 2) → descarte do texto.
+Corrija a lacuna apontada na auditoria do 6.1. Não altere nada
+além do necessário.
+
+1. Limpeza na inicialização
+Implemente uma rotina que, ao iniciar o app, remova as pastas
+<uuid>/ deixadas pelo seletor de imagem no diretório de cache.
+Ela fecha os cenários d e e, em que a cópia fica órfã sem que
+retrieveLostData a recupere.
+
+Requisitos:
+- a limpeza não pode lançar exceção nem impedir o app de abrir
+- deve remover apenas o que pertence ao seletor, nunca outros
+  arquivos de cache do app
+- nenhum nome de arquivo é escrito em log
+- documente no código por que ela existe: o plugin copia a imagem
+  para o cache antes de devolver o caminho, e deleteOnExit não é
+  confiável no Android, então o RNF01 exige uma varredura própria
+
+2. Falha de cópia tratada como cancelamento
+Quando a cópia falhar no plugin e ele devolver null, a rotina de
+limpeza acima passa a cobrir eventual arquivo parcial.
+
+3. A mensagem de FileSystemException traz o caminho, que inclui o
+nome original do print. Registre no código que essa exceção não
+pode ser exibida ao usuário nem gravada em log pela camada de
+tela.
+
+Testes obrigatórios:
+- a limpeza remove as pastas do seletor
+- a limpeza não toca em outros arquivos do cache
+- a limpeza falhando não impede o app de iniciar
+- nenhum teste acessa o sistema de arquivos real
+
+Rode flutter analyze e flutter test e me mostre o resultado dos
+dois. Trabalhe na branch atual, sem commits.
+```
+
+### Prompt 6.2 — OCR e pipeline
+
+> **DESBLOQUEADO (2026-10-07):** as quatro definições de que dependia foram resolvidas — volume mínimo de texto do OCR (`docs/limite-texto-ocr.md`), provedor de LLM (contratado), chave do Cloud Vision (dispensada pelo OCR embarcado) e execução sem RAG antes da Fase 7 (decisão abaixo).
+
+> **DECISÃO (2026-10-07, pendente de validação pela equipe):** a extração de caracteres passa a ser executada no próprio dispositivo, com reconhecimento de texto embarcado (Google ML Kit Text Recognition), em vez da API de visão computacional em nuvem. Justificativa, em ordem de importância:
+> 1. **Privacidade:** a imagem deixa de ser transmitida a terceiros. A seção 5.1 da arquitetura já define a captura de tela como o dado mais sensível manipulado pela aplicação; com o processamento local, a mídia não sai do dispositivo em nenhuma hipótese, e a questão de retenção pelo provedor de OCR deixa de existir.
+> 2. **Independência de infraestrutura:** elimina a necessidade de endpoint de OCR na camada intermediária e de chave de API para essa etapa.
+> 3. **Custo operacional nulo** para a extração, como consequência.
+>
+> Limitações:
+> - precisão inferior à de serviços em nuvem em imagens de baixa qualidade, aceitável para prints de conversa, que são texto limpo sobre fundo uniforme
+> - aumento do tamanho do pacote do aplicativo
+> - indisponível na plataforma web, que já não suportava a seleção de imagem da galeria
+> - o reconhecimento embarcado não substitui o restante do fluxo: o texto extraído continua sendo transmitido ao modelo de linguagem, de modo que o RNF07 permanece integralmente aplicável
+
+> **DECISÃO (2026-10-07):** o Prompt 6.2 é implementado **SEM RAG**. A recuperação na base de conhecimento é acrescentada na Fase 7, conforme o RNF05, que a define como condição de operação da camada de PLN. Até lá o veredito do modelo não é fundamentado em padrões catalogados, o que deve ser considerado em qualquer demonstração.
+
+**[CLAUDE CODE]**
+```
+Conecte o fluxo do UC04: imagem → OCR embarcado no dispositivo
+(Google ML Kit Text Recognition) → descarte da imagem →
+verificação de suficiência do texto → mascaramento local (Fase 3)
+→ nova verificação de suficiência → envio ao LLM via proxy (novo
+endpoint na Function da Fase 5) → score (Fase 2) → descarte do
+texto.
+
+A imagem não é transmitida em nenhuma etapa. Não crie endpoint
+de OCR na Function.
 
 Trate todas as exceções listadas no UC04.
 ```

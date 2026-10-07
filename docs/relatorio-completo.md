@@ -58,7 +58,7 @@ Para a consecução do objetivo geral, estabelecem-se as seguintes metas especí
 
 - Construir um analisador de links (URL Checker) capaz de realizar consultas assíncronas de reputação, verificar a idade de registro do domínio e avaliar a anatomia das URLs para a detecção de typosquatting;
 
-- Integrar uma camada de inteligência artificial multimodal utilizando a API do Google Cloud Vision para a extração de caracteres (OCR) a partir de capturas de tela;
+- Integrar uma camada de visão computacional embarcada, utilizando o Google ML Kit Text Recognition para a extração de caracteres (OCR) a partir de capturas de tela no próprio dispositivo, sem transmissão da imagem a terceiros;
 
 - Implementar processamento de linguagem natural (PLN) via grandes modelos de linguagem (LLM) acoplados à metodologia RAG para identificar urgência artificial e pedidos financeiros anômalos em textos extraídos;
 
@@ -76,13 +76,15 @@ Para a consecução do objetivo geral, estabelecem-se as seguintes metas especí
 
 O Flutter é o framework utilizado para a construção da interface (front-end). Trabalhando em conjunto com a linguagem de programação Dart, esta tecnologia permite o desenvolvimento multiplataforma. Atua diretamente como a camada visual do aplicativo, ou seja, é o módulo que o usuário instala e com o qual interage no celular. A escolha desta tecnologia se justifica por garantir a manutenção de um código único para entregar uma interface fluida, acessível e de alta performance simultaneamente para sistemas Android e iOS.
 
-## **4.2 Google Cloud Vision**
+## **4.2 Google ML Kit Text Recognition**
 
-Trata-se de uma API de inteligência artificial multimodal voltada para a visão computacional. A tecnologia permite o mapeamento estrutural da captura de tela enviada e realiza o Reconhecimento Óptico de Caracteres (OCR). Na prática, ela varre a matriz de pixels da imagem e converte os padrões visuais encontrados em caracteres de texto plano, disponibilizando os dados para processamento lógico. Aplicada ao contexto do projeto, é a camada responsável pelo reconhecimento do conteúdo das imagens enviadas pelo usuário.
+Trata-se de uma biblioteca de visão computacional do Google executada no próprio dispositivo, que realiza o Reconhecimento Óptico de Caracteres (OCR). Na prática, ela varre a matriz de pixels da imagem e converte os padrões visuais encontrados em caracteres de texto plano, disponibilizando os dados para processamento lógico. Aplicada ao contexto do projeto, é a camada responsável pelo reconhecimento do conteúdo das imagens submetidas pelo usuário.
+
+A escolha pelo processamento local decorre, em ordem de importância, de três fatores: privacidade, pois a captura de tela, dado mais sensível manipulado pela aplicação, não sai do dispositivo em nenhuma hipótese, e a questão de retenção pelo provedor de OCR deixa de existir; independência de infraestrutura, pois dispensa endpoint de OCR na camada intermediária e chave de API para essa etapa; e custo operacional nulo para a extração, como consequência. Registram-se como limitações a precisão inferior à de serviços em nuvem em imagens de baixa qualidade, aceitável para prints de conversa, que são texto limpo sobre fundo uniforme; o aumento do tamanho do pacote do aplicativo; e a indisponibilidade na plataforma web, que já não suportava a seleção de imagem da galeria. O reconhecimento embarcado não substitui o restante do fluxo: o texto extraído continua sendo transmitido ao modelo de linguagem, de modo que o RNF07 permanece integralmente aplicável.
 
 ## **4.3 Modelos de Linguagem (LLMs)**
 
-As APIs de modelos de linguagem atuam como o componente analítico do sistema. Esses modelos recebem o texto já extraído pela camada de OCR, e previamente mascarado no dispositivo, e executam algoritmos de Processamento de Linguagem Natural (PLN) para analisar a semântica da mensagem e detectar indicativos de fraude, como senso de urgência artificial e pedidos anômalos de dinheiro. Cabe destacar que o papel do modelo se limita à identificação dos sinais e à geração da explicação pedagógica: o valor numérico do Score de Risco é calculado por regra determinística implementada na própria aplicação, conforme detalhado na seção 4.8.
+As APIs de modelos de linguagem atuam como o componente analítico do sistema. Esses modelos recebem o texto já extraído no dispositivo pela camada de OCR embarcada, e previamente mascarado também no dispositivo, sendo o provedor do modelo de linguagem o único terceiro a receber conteúdo derivado da conversa, e executam algoritmos de Processamento de Linguagem Natural (PLN) para analisar a semântica da mensagem e detectar indicativos de fraude, como senso de urgência artificial e pedidos anômalos de dinheiro. Cabe destacar que o papel do modelo se limita à identificação dos sinais e à geração da explicação pedagógica: o valor numérico do Score de Risco é calculado por regra determinística implementada na própria aplicação, conforme detalhado na seção 4.8.
 
 ## **4.4 Estrutura RAG (Retrieval-Augmented Generation)**
 
@@ -180,13 +182,13 @@ O detalhamento integral dos requisitos, incluindo critérios de aceitação e ju
 
 **Nome: **Analisador de Prints (IA Contextual)
 
-**Módulo: **IA / Vision
+**Módulo: **IA / OCR Embarcado
 
 **Prioridade: **Alta
 
-**Descrição: **O sistema deve processar imagens (prints de WhatsApp, SMS, e-mail) utilizando OCR e Processamento de Linguagem Natural para identificar abordagens fraudulentas, como gatilhos de urgência, ameaças ou pedidos financeiros suspeitos.
+**Descrição: **O sistema deve processar imagens (prints de WhatsApp, SMS, e-mail) utilizando OCR executado no próprio dispositivo, conforme o RNF06, e Processamento de Linguagem Natural para identificar abordagens fraudulentas, como gatilhos de urgência, ameaças ou pedidos financeiros suspeitos.
 
-**Critérios de Aceitação: **A IA deve extrair o texto, destacar as frases suspeitas na interface e explicar de forma didática o porquê de serem consideradas características de um golpe. O envio do texto à nuvem é condicionado à aplicação prévia da rotina de mascaramento local definida no RNF07.
+**Critérios de Aceitação: **A IA deve extrair o texto, destacar as frases suspeitas na interface e explicar de forma didática o porquê de serem consideradas características de um golpe. O envio do texto à nuvem é condicionado à aplicação prévia da rotina de mascaramento local definida no RNF07. O texto extraído deve atingir volume mínimo para seguir à análise, verificado antes e depois do mascaramento local; o valor consta exclusivamente de `docs/limite-texto-ocr.md`, que é a fonte única desse dado.
 
 ### **RF05 — Reportar Golpe**
 
@@ -322,7 +324,7 @@ O detalhamento integral dos requisitos, incluindo critérios de aceitação e ju
 
 **Prioridade: **Alta
 
-**Descrição: **O sistema deve tratar o dado do usuário sob o princípio de minimização, aplicando três garantias cumulativas: (a) as imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual, não sendo gravadas em disco local nem em servidor; (b) o texto extraído sofre mascaramento local de dados pessoais estruturados antes de qualquer transmissão à nuvem; (c) nenhum conteúdo de conversa, em imagem ou em texto, é persistido no banco de dados, o histórico armazena apenas o resultado da análise (Score de Risco, categoria da ameaça, explicação pedagógica e data).
+**Descrição: **O sistema deve tratar o dado do usuário sob o princípio de minimização, aplicando três garantias cumulativas: (a) as imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual, não sendo gravadas em disco local nem em servidor e não sendo transmitidas a terceiro algum, uma vez que a extração textual é executada no próprio dispositivo (RNF06); (b) o texto extraído sofre mascaramento local de dados pessoais estruturados antes de qualquer transmissão à nuvem; (c) nenhum conteúdo de conversa, em imagem ou em texto, é persistido no banco de dados, o histórico armazena apenas o resultado da análise (Score de Risco, categoria da ameaça, explicação pedagógica e data).
 
 **Justificativa: **Assegurar a confidencialidade das comunicações privadas do usuário e atender aos princípios de finalidade, necessidade e minimização previstos no Art. 6º da Lei nº 13.709/2018 (LGPD). A limitação do dado persistido reduz a superfície de exposição em caso de incidente e dispensa o tratamento de dado pessoal sensível em base própria.
 
@@ -350,9 +352,9 @@ O detalhamento integral dos requisitos, incluindo critérios de aceitação e ju
 
 **Prioridade: **Média
 
-**Descrição: **O processamento das requisições via API de LLM/Vision deve iniciar o feedback visual de carregamento imediatamente, devendo a primeira porção do resultado ser apresentada em até 5 segundos, mediante streaming progressivo do texto gerado. A cadeia de processamento envolve extração de caracteres, recuperação na base de conhecimento e inferência do modelo de linguagem, etapas cuja soma raramente se conclui abaixo desse patamar; o requisito prioriza, portanto, a percepção contínua de atividade do sistema sobre a redução do tempo total.
+**Descrição: **O processamento da análise deve iniciar o feedback visual de carregamento imediatamente, devendo a primeira porção do resultado ser apresentada em até 5 segundos, mediante streaming progressivo do texto gerado. A cadeia de processamento envolve a extração de caracteres, executada no próprio dispositivo (RNF06), a recuperação na base de conhecimento e a inferência do modelo de linguagem, única etapa remota, realizada via API de LLM. A geração completa da resposta raramente se conclui abaixo desse patamar; o requisito prioriza, portanto, a percepção contínua de atividade do sistema sobre a redução do tempo total.
 
-**Justificativa: **Prevenir que o usuário abandone o aplicativo achando que travou durante o processamento de modelos de inteligência artificial.
+**Justificativa: **Prevenir que o usuário abandone o aplicativo achando que travou durante o processamento de modelos de inteligência artificial. Reavaliação (2026-10-07): com a extração de caracteres no dispositivo, a cadeia perde a etapa de rede de maior volume de dados, o envio da imagem, mas o tempo até a primeira porção do resultado continua dominado pela inferência remota do modelo de linguagem, cuja geração completa permanece acima do patamar. O valor de 5 segundos e a priorização do streaming permanecem coerentes e são mantidos. Em contrapartida, o reconhecimento embarcado passa a consumir parte desse intervalo no próprio aparelho, com duração dependente do hardware, o que deve ser aferido em dispositivo de entrada durante a validação do RNF06.
 
 ### **RNF04 — Coesão Contextual da IA**
 
@@ -382,19 +384,21 @@ O detalhamento integral dos requisitos, incluindo critérios de aceitação e ju
 
 **Justificativa: **Modelos de linguagem genéricos reconhecem táticas universais de engenharia social, mas desconhecem a especificidade local. A base de conhecimento brasileira constitui o diferencial competitivo estruturante do projeto, por ser o único componente não replicável por meio da simples contratação de uma API, e por ganhar densidade à medida que o produto é utilizado.
 
-### **RNF06 — Integração de Visão Computacional (OCR)**
+### **RNF06 — Visão Computacional Embarcada (OCR)**
 
 **Identificador: **RNF06
 
-**Nome: **Integração de Visão Computacional (OCR)
+**Nome: **Visão Computacional Embarcada (OCR)
 
 **Módulo: **Tecnologia / Integração
 
 **Prioridade: **Alta
 
-**Descrição: **A extração de caracteres das capturas de tela deve ser executada primariamente via integração com serviços otimizados para OCR de alta precisão (ex: Google Cloud Vision API).
+**Descrição: **A extração de caracteres das capturas de tela deve ser executada no próprio dispositivo, por meio de reconhecimento de texto embarcado de alta precisão (Google ML Kit Text Recognition), sem transmissão da imagem a serviço de visão computacional em nuvem.
 
-**Justificativa: **Assegurar a leitura correta de textos em diferentes resoluções, fontes e fundos variados (modo escuro/claro), características comuns em prints de WhatsApp ou SMS.
+**Justificativa: **Assegurar a leitura correta de textos em diferentes resoluções, fontes e fundos variados (modo escuro/claro), características comuns em prints de WhatsApp ou SMS. A execução local atende, em ordem de importância: (i) à privacidade, pois a captura de tela, dado mais sensível manipulado pela aplicação, não sai do dispositivo em nenhuma hipótese, e a questão de retenção pelo provedor de OCR deixa de existir; (ii) à independência de infraestrutura, pois dispensa endpoint de OCR na camada intermediária e chave de API para essa etapa; (iii) ao custo, que passa a ser nulo para a extração.
+
+**Limitações declaradas: **a precisão é inferior à de serviços em nuvem em imagens de baixa qualidade, o que se considera aceitável para prints de conversa, compostos de texto limpo sobre fundo uniforme; o tamanho do pacote do aplicativo aumenta; o recurso é indisponível na plataforma web, que já não suportava a seleção de imagem da galeria. O reconhecimento embarcado não substitui o restante do fluxo: o texto extraído continua sendo transmitido ao modelo de linguagem, de modo que o RNF07 permanece integralmente aplicável.
 
 ### **RNF07 — Ciclo de Vida do Dado Textual**
 
@@ -428,7 +432,7 @@ O detalhamento integral dos requisitos, incluindo critérios de aceitação e ju
 
 **Módulo: **IA
 
-**Descrição: **Estudo de APIs (OpenAI, Google Gemini) focadas em detecção de fraude e análise de sentimentos, com avaliação obrigatória dos termos de retenção e uso de dados de cada fornecedor, conforme condição estabelecida no RNF07.
+**Descrição: **Estudo de APIs (OpenAI, Google Gemini) focadas em detecção de fraude e análise de sentimentos, com avaliação obrigatória dos termos de retenção e uso de dados de cada fornecedor, conforme condição estabelecida no RNF07. O estudo de provedores aplica-se exclusivamente ao modelo de linguagem, uma vez que a extração de caracteres é executada no dispositivo (RNF06).
 
 ### **RDEV02 — Prototipagem em Figma**
 
@@ -464,7 +468,7 @@ Representa a visão macro das interações. Ele mapeia de forma clara quem são 
 
 ## **Diagrama de Sequência**
 
-Representa o mapeamento cronológico e detalhado do fluxo de dados. Ele ilustra o passo a passo da comunicação entre as camadas do projeto ao longo do tempo. É neste artefato que se consolida a documentação das regras de negócio críticas, desenhando as chamadas do frontend (Flutter) para o backend (Firebase) durante a autenticação, e a requisição das imagens para as APIs externas, evidenciando a etapa de mascaramento local anterior à transmissão, o descarte imediato da mídia e do texto analisado, e o cumprimento dos parâmetros de latência definidos no RNF03.
+Representa o mapeamento cronológico e detalhado do fluxo de dados. Ele ilustra o passo a passo da comunicação entre as camadas do projeto ao longo do tempo. É neste artefato que se consolida a documentação das regras de negócio críticas, desenhando as chamadas do frontend (Flutter) para o backend (Firebase) durante a autenticação, e o fluxo de análise de print, no qual a extração de caracteres ocorre no próprio dispositivo e somente o texto mascarado é transmitido à API externa do modelo de linguagem, evidenciando a etapa de mascaramento local anterior à transmissão, o descarte imediato da mídia e do texto analisado, e o cumprimento dos parâmetros de latência definidos no RNF03.
 
 # **REFERÊNCIAS**
 

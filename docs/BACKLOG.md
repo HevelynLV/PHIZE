@@ -12,7 +12,7 @@ Tarefas técnicas derivadas dos Requisitos Funcionais (RF01–RF12) e Não Funci
 | T06 | Registrar o aplicativo como destino no menu de compartilhamento nativo do sistema operacional para os tipos MIME de imagem e texto | RF10 | MVP | T01 |
 | T07 | Implementar retenção em memória do conteúdo recebido por compartilhamento até a conclusão do login, sem gravação em disco, quando o usuário não estiver autenticado | RF10 | MVP | T06, T04 |
 | T08 | Implementar roteamento automático do conteúdo recebido (imagem, texto ou link) para o fluxo de análise correspondente | RF10 | MVP | T06 |
-| T09 | Integrar a API do Google Cloud Vision para extração de caracteres (OCR) | RNF06 | MVP | T01 |
+| T09 | Integrar o reconhecimento de texto embarcado (Google ML Kit Text Recognition) para extração de caracteres (OCR) no próprio dispositivo, sem chave de API nem endpoint na camada intermediária | RNF06 | MVP | T01 |
 | T10 | Implementar carregamento da imagem em memória volátil com descarte imediato após o OCR, inclusive em bloco de tratamento de exceção | RNF01, RF04 | MVP | T09 |
 | T11 | Implementar verificação de suficiência do texto extraído, interrompendo o fluxo sem transmissão à nuvem quando o volume for insuficiente | RF04 | MVP | T09 |
 | T12 | Implementar rotina de mascaramento local (regex) de dados pessoais estruturados: CPF, CNPJ, telefone, e-mail, chave Pix, número de cartão e código de barras de boleto | RNF07 | MVP | T09 |
@@ -54,7 +54,7 @@ Tarefas técnicas derivadas dos Requisitos Funcionais (RF01–RF12) e Não Funci
 ## Decisões não definidas nos documentos (bloqueiam implementação)
 
 - **Limiar de denúncias para ocultação automática (RF11):** o requisito determina que reportes "denunciados acima de limiar definido" sejam ocultados, mas não especifica o valor numérico do limiar. Bloqueia T44.
-- **Volume mínimo de texto extraído (RF04 / UC04):** o caso de uso UC04 menciona que "volume inferior ao mínimo configurado interrompe o fluxo", mas nenhum documento define esse valor mínimo. Bloqueia T11.
+- ~~**Volume mínimo de texto extraído (RF04 / UC04):** o caso de uso UC04 menciona que "volume inferior ao mínimo configurado interrompe o fluxo", mas nenhum documento define esse valor mínimo. Bloqueia T11.~~ — **decidido: v1.0 (2026-10-07), ver `docs/limite-texto-ocr.md`.**
 - **Periodicidade de atualização da base de conhecimento (RNF05):** o requisito exige "processo de atualização periódica documentado", sem definir a frequência nem o processo formal de execução. Impacta o planejamento operacional de T15/T46, sem bloquear a implementação inicial.
 - **Critérios de complexidade de senha (RF01):** definido apenas o mínimo de 8 caracteres; não há definição sobre exigência de maiúsculas, números, caracteres especiais ou política de expiração/reuso.
 - **Funcionalidade de Pesquisa de Reportes (UC08):** citada apenas no Escopo de Expansão (seção 2.2, "pesquisa") e detalhada em UC08, mas sem RF formal com critérios de aceitação em `requisitos.md`. Não há tarefa correspondente na tabela por ausência de requisito de origem citável.

@@ -18,7 +18,7 @@ Documento técnico contendo a arquitetura visual e os diagramas da Linguagem de 
 
 O presente documento tem como objetivo apresentar a modelagem arquitetônica e comportamental do Projeto Phize, um aplicativo de segurança preventiva focado na detecção de fraudes digitais e engenharia social. O escopo desta entrega concentra-se exclusivamente na representação visual do ecossistema por meio da Linguagem de Modelagem Unificada (UML).
 
-Para garantir a precisão técnica da documentação, os fluxos de interação entre os usuários, a interface em Flutter, o banco de dados Firebase e as APIs de inteligência artificial (Google Cloud Vision e LLMs) foram mapeados utilizando Diagramas de Casos de Uso e Diagramas de Sequência. O detalhamento destas estruturas visa fornecer uma base sólida e padronizada para as fases de implementação e engenharia de software da solução.
+Para garantir a precisão técnica da documentação, os fluxos de interação entre os usuários, a interface em Flutter, o banco de dados Firebase, o reconhecimento de texto embarcado no dispositivo (Google ML Kit Text Recognition) e as APIs de modelos de linguagem (LLMs) foram mapeados utilizando Diagramas de Casos de Uso e Diagramas de Sequência. O detalhamento destas estruturas visa fornecer uma base sólida e padronizada para as fases de implementação e engenharia de software da solução.
 
 **2 MODELAGEM DO SISTEMA (UML)**
 

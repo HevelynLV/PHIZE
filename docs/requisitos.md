@@ -38,7 +38,7 @@ O MVP concentra-se no fluxo que materializa a proposta de valor central — subm
 
 - **Módulo de Captura por Compartilhamento Nativo:** recebimento de imagens e textos diretamente pelo menu de compartilhamento do sistema operacional, dispensando a navegação manual até a galeria.
 
-- **Módulo de Visão Computacional:** integração com Google Cloud Vision para extração de caracteres (OCR).
+- **Módulo de Visão Computacional:** reconhecimento de texto embarcado no próprio dispositivo (Google ML Kit Text Recognition) para extração de caracteres (OCR), sem transmissão da imagem a terceiros.
 
 - **Módulo de Processamento Lógico (IA):** PLN via LLM calibrado por arquitetura RAG, para identificação de urgência artificial e solicitações financeiras anômalas.
 
@@ -130,13 +130,13 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Nome: **Analisador de Prints (IA Contextual)
 
-**Módulo: **IA / Vision
+**Módulo: **IA / OCR Embarcado
 
 **Prioridade: **Alta
 
-**Descrição: **O sistema deve processar imagens (prints de WhatsApp, SMS, e-mail) utilizando OCR e Processamento de Linguagem Natural para identificar abordagens fraudulentas, como gatilhos de urgência, ameaças ou pedidos financeiros suspeitos.
+**Descrição: **O sistema deve processar imagens (prints de WhatsApp, SMS, e-mail) utilizando OCR executado no próprio dispositivo, conforme o RNF06, e Processamento de Linguagem Natural para identificar abordagens fraudulentas, como gatilhos de urgência, ameaças ou pedidos financeiros suspeitos.
 
-**Critérios de Aceitação: **A IA deve extrair o texto, destacar as frases suspeitas na interface e explicar de forma didática o porquê de serem consideradas características de um golpe. O envio do texto à nuvem é condicionado à aplicação prévia da rotina de mascaramento local definida no RNF07.
+**Critérios de Aceitação: **A IA deve extrair o texto, destacar as frases suspeitas na interface e explicar de forma didática o porquê de serem consideradas características de um golpe. O envio do texto à nuvem é condicionado à aplicação prévia da rotina de mascaramento local definida no RNF07. O texto extraído deve atingir volume mínimo para seguir à análise, verificado antes e depois do mascaramento local; o valor consta exclusivamente de `docs/limite-texto-ocr.md`, que é a fonte única desse dado.
 
 ### **RF05 — Reportar Golpe**
 
@@ -272,7 +272,7 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Prioridade: **Alta
 
-**Descrição: **O sistema deve tratar o dado do usuário sob o princípio de minimização, aplicando três garantias cumulativas: (a) as imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual, não sendo gravadas em disco local nem em servidor; (b) o texto extraído sofre mascaramento local de dados pessoais estruturados antes de qualquer transmissão à nuvem; (c) nenhum conteúdo de conversa, em imagem ou em texto, é persistido no banco de dados, o histórico armazena apenas o resultado da análise (Score de Risco, categoria da ameaça, explicação pedagógica e data).
+**Descrição: **O sistema deve tratar o dado do usuário sob o princípio de minimização, aplicando três garantias cumulativas: (a) as imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual, não sendo gravadas em disco local nem em servidor e não sendo transmitidas a terceiro algum, uma vez que a extração textual é executada no próprio dispositivo (RNF06); (b) o texto extraído sofre mascaramento local de dados pessoais estruturados antes de qualquer transmissão à nuvem; (c) nenhum conteúdo de conversa, em imagem ou em texto, é persistido no banco de dados, o histórico armazena apenas o resultado da análise (Score de Risco, categoria da ameaça, explicação pedagógica e data).
 
 **Justificativa: **Assegurar a confidencialidade das comunicações privadas do usuário e atender aos princípios de finalidade, necessidade e minimização previstos no Art. 6º da Lei nº 13.709/2018 (LGPD). A limitação do dado persistido reduz a superfície de exposição em caso de incidente e dispensa o tratamento de dado pessoal sensível em base própria.
 
@@ -300,9 +300,9 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Prioridade: **Média
 
-**Descrição: **O processamento das requisições via API de LLM/Vision deve iniciar o feedback visual de carregamento imediatamente, devendo a primeira porção do resultado ser apresentada em até 5 segundos, mediante streaming progressivo do texto gerado. A cadeia de processamento envolve extração de caracteres, recuperação na base de conhecimento e inferência do modelo de linguagem, etapas cuja soma raramente se conclui abaixo desse patamar; o requisito prioriza, portanto, a percepção contínua de atividade do sistema sobre a redução do tempo total.
+**Descrição: **O processamento da análise deve iniciar o feedback visual de carregamento imediatamente, devendo a primeira porção do resultado ser apresentada em até 5 segundos, mediante streaming progressivo do texto gerado. A cadeia de processamento envolve a extração de caracteres, executada no próprio dispositivo (RNF06), a recuperação na base de conhecimento e a inferência do modelo de linguagem, única etapa remota, realizada via API de LLM. A geração completa da resposta raramente se conclui abaixo desse patamar; o requisito prioriza, portanto, a percepção contínua de atividade do sistema sobre a redução do tempo total.
 
-**Justificativa: **Prevenir que o usuário abandone o aplicativo achando que travou durante o processamento de modelos de inteligência artificial.
+**Justificativa: **Prevenir que o usuário abandone o aplicativo achando que travou durante o processamento de modelos de inteligência artificial. Reavaliação (2026-10-07): com a extração de caracteres no dispositivo, a cadeia perde a etapa de rede de maior volume de dados, o envio da imagem, mas o tempo até a primeira porção do resultado continua dominado pela inferência remota do modelo de linguagem, cuja geração completa permanece acima do patamar. O valor de 5 segundos e a priorização do streaming permanecem coerentes e são mantidos. Em contrapartida, o reconhecimento embarcado passa a consumir parte desse intervalo no próprio aparelho, com duração dependente do hardware, o que deve ser aferido em dispositivo de entrada durante a validação do RNF06.
 
 ### **RNF04 — Coesão Contextual da IA**
 
@@ -332,19 +332,21 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Justificativa: **Modelos de linguagem genéricos reconhecem táticas universais de engenharia social, mas desconhecem a especificidade local — o golpe do falso boleto de órgão estadual, a fraude do falso leilão de veículos, o padrão de domínio usado em campanhas de Pix regionais. A base de conhecimento brasileira constitui o diferencial competitivo estruturante do projeto, por ser o único componente não replicável por meio da simples contratação de uma API, e por ganhar densidade à medida que o produto é utilizado.
 
-### **RNF06 — Integração de Visão Computacional (OCR)**
+### **RNF06 — Visão Computacional Embarcada (OCR)**
 
 **Identificador: **RNF06
 
-**Nome: **Integração de Visão Computacional (OCR)
+**Nome: **Visão Computacional Embarcada (OCR)
 
 **Módulo: **Tecnologia / Integração
 
 **Prioridade: **Alta
 
-**Descrição: **A extração de caracteres das capturas de tela deve ser executada primariamente via integração com serviços otimizados para OCR de alta precisão (ex: Google Cloud Vision API).
+**Descrição: **A extração de caracteres das capturas de tela deve ser executada no próprio dispositivo, por meio de reconhecimento de texto embarcado de alta precisão (Google ML Kit Text Recognition), sem transmissão da imagem a serviço de visão computacional em nuvem.
 
-**Justificativa: **Assegurar a leitura correta de textos em diferentes resoluções, fontes e fundos variados (modo escuro/claro), características comuns em prints de WhatsApp ou SMS.
+**Justificativa: **Assegurar a leitura correta de textos em diferentes resoluções, fontes e fundos variados (modo escuro/claro), características comuns em prints de WhatsApp ou SMS. A execução local atende, em ordem de importância: (i) à privacidade, pois a captura de tela, dado mais sensível manipulado pela aplicação, não sai do dispositivo em nenhuma hipótese, e a questão de retenção pelo provedor de OCR deixa de existir; (ii) à independência de infraestrutura, pois dispensa endpoint de OCR na camada intermediária e chave de API para essa etapa; (iii) ao custo, que passa a ser nulo para a extração.
+
+**Limitações declaradas: **a precisão é inferior à de serviços em nuvem em imagens de baixa qualidade, o que se considera aceitável para prints de conversa, compostos de texto limpo sobre fundo uniforme; o tamanho do pacote do aplicativo aumenta; o recurso é indisponível na plataforma web, que já não suportava a seleção de imagem da galeria. O reconhecimento embarcado não substitui o restante do fluxo: o texto extraído continua sendo transmitido ao modelo de linguagem, de modo que o RNF07 permanece integralmente aplicável.
 
 ### **RNF07 — Ciclo de Vida do Dado Textual**
 
@@ -380,7 +382,7 @@ O cenário de atuação do software é pautado pela crise de segurança digital 
 
 **Módulo: **IA
 
-**Descrição: **Estudo de APIs (OpenAI, Google Gemini) focadas em detecção de fraude e análise de sentimentos, com avaliação obrigatória dos termos de retenção e uso de dados de cada fornecedor, conforme condição estabelecida no RNF07.
+**Descrição: **Estudo de APIs (OpenAI, Google Gemini) focadas em detecção de fraude e análise de sentimentos, com avaliação obrigatória dos termos de retenção e uso de dados de cada fornecedor, conforme condição estabelecida no RNF07. O estudo de provedores aplica-se exclusivamente ao modelo de linguagem, uma vez que a extração de caracteres é executada no dispositivo (RNF06).
 
 ### **RDEV02 — Prototipagem em Figma**
 

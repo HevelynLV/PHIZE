@@ -36,7 +36,7 @@ FLORIANÓPOLIS - SC
 
 - **RAG:** arquitetura de IA que permite ao modelo consultar uma base externa antes de responder. Em vez de gerar a resposta apenas a partir do treinamento prévio, o modelo recupera padrões de uma base curada de golpes e fundamenta o veredito nesses registros.
 
-- **Google Cloud Vision:** ferramenta de inteligência artificial multimodal do Google voltada à visão computacional. Sua função de OCR (Reconhecimento Óptico de Caracteres) converte os pixels de uma imagem em texto processável.
+- **Google ML Kit Text Recognition:** biblioteca de visão computacional do Google executada no próprio dispositivo. Sua função de OCR (Reconhecimento Óptico de Caracteres) converte os pixels de uma imagem em texto processável sem transmitir a imagem a servidor algum.
 
 - **Flutter:** framework utilizado para construir a interface do aplicativo instalado no celular do usuário.
 
@@ -60,9 +60,9 @@ Este módulo assegura a funcionalidade lógica do sistema e a persistência dos 
 
 - **Banco de Dados:** emprego do Cloud Firestore (NoSQL) para o armazenamento de hashes de links denunciados e gestão do histórico de segurança do usuário.
 
-- **Custos Operacionais:** A camada de backend gerenciado (Firebase Authentication e Cloud Firestore) opera sob o plano gratuito, cujas cotas são suficientes para o volume previsto na fase de validação. A camada de inteligência artificial constitui exceção deliberada: o RNF07 condiciona a transmissão de texto a provedores cujos termos vedem o uso do conteúdo para treinamento de modelos, condição não oferecida pelas camadas gratuitas de uso, que em regra reservam ao fornecedor o direito de utilizar as entradas para melhoria de modelos. A contratação de plano com retenção controlada é, portanto, requisito de privacidade e não escolha de desempenho, e representa o único custo operacional recorrente previsto para o MVP. Durante a fase de prototipação e testes internos, admite-se o uso de camada gratuita exclusivamente com dados fictícios ou previamente descaracterizados, vedado o processamento de conversas reais de usuários nessa condição.
+- **Custos Operacionais:** A camada de backend gerenciado (Firebase Authentication e Cloud Firestore) opera sob o plano gratuito, cujas cotas são suficientes para o volume previsto na fase de validação. A camada de inteligência artificial constitui exceção deliberada: o RNF07 condiciona a transmissão de texto a provedores cujos termos vedem o uso do conteúdo para treinamento de modelos, condição não oferecida pelas camadas gratuitas de uso, que em regra reservam ao fornecedor o direito de utilizar as entradas para melhoria de modelos. A contratação de plano com retenção controlada é, portanto, requisito de privacidade e não escolha de desempenho, e representa o único custo operacional recorrente previsto para o MVP. Durante a fase de prototipação e testes internos, admite-se o uso de camada gratuita exclusivamente com dados fictícios ou previamente descaracterizados, vedado o processamento de conversas reais de usuários nessa condição. A extração de caracteres, executada no próprio dispositivo por reconhecimento embarcado (seção 3.1), não gera custo operacional, de modo que o único custo recorrente previsto passa a ser o do modelo de linguagem.
 
-- **Proteção de Credenciais:** as chaves de acesso às APIs de terceiros não são embarcadas no pacote do aplicativo. As chamadas aos provedores de inteligência artificial trafegam por camada intermediária gerenciada, de modo que a credencial permaneça sob controle do servidor e não seja extraível a partir do binário distribuído nas lojas de aplicativos.
+- **Proteção de Credenciais:** as chaves de acesso às APIs de terceiros não são embarcadas no pacote do aplicativo. As chamadas aos provedores de inteligência artificial trafegam por camada intermediária gerenciada, de modo que a credencial permaneça sob controle do servidor e não seja extraível a partir do binário distribuído nas lojas de aplicativos. A extração de caracteres é executada no dispositivo, sem chamada a API de terceiros, e não há, portanto, chave de OCR a proteger.
 
 # **3 CAMADA DE INTELIGÊNCIA ARTIFICIAL E PROCESSAMENTO**
 
@@ -70,7 +70,11 @@ A camada de inteligência é responsável pela execução dos requisitos de IA e
 
 ## **3.1 Visão Computacional (OCR)**
 
-Para o cumprimento da Análise de Print (RF04), o sistema utiliza a API do Google Cloud Vision para a extração técnica de caracteres e textos a partir de capturas de tela enviadas.
+Para o cumprimento da Análise de Print (RF04), a extração de caracteres das capturas de tela é executada no próprio dispositivo, por reconhecimento de texto embarcado (Google ML Kit Text Recognition), conforme o RNF06. A imagem é processada em memória volátil e não é transmitida a serviço de visão computacional em nuvem nem a qualquer outro terceiro.
+
+A escolha decorre, em ordem de importância, de três fatores: (i) privacidade — a captura de tela, definida na seção 5 como o dado mais sensível manipulado pela aplicação, não sai do dispositivo em nenhuma hipótese, e a questão de retenção pelo provedor de OCR deixa de existir; (ii) independência de infraestrutura — dispensa endpoint de OCR na camada intermediária e chave de API para essa etapa; (iii) custo operacional nulo para a extração, como consequência.
+
+Registram-se as limitações da abordagem: precisão inferior à de serviços em nuvem em imagens de baixa qualidade, aceitável para prints de conversa, que são texto limpo sobre fundo uniforme; aumento do tamanho do pacote do aplicativo; e indisponibilidade na plataforma web, que já não suportava a seleção de imagem da galeria. O reconhecimento embarcado não substitui o restante do fluxo: o texto extraído continua sendo transmitido ao modelo de linguagem (seção 3.2), de modo que o RNF07 permanece integralmente aplicável.
 
 ## **3.2 Processamento Contextual (PLN) e Base de Conhecimento**
 
@@ -110,7 +114,7 @@ Em observância à LGPD e aos requisitos RNF01 e RNF07, o sistema adota a aborda
 
 ## **5.1 Persistência Zero da Mídia**
 
-As imagens submetidas para análise são carregadas em memória volátil, encaminhadas à API de visão computacional e descartadas imediatamente após o retorno do texto. Não há gravação em disco local, cache de aplicação, storage em nuvem ou banco de dados. Eventual arquivo temporário criado pelo seletor de mídia do sistema operacional é removido na mesma rotina. Em caso de falha ou interrupção do fluxo, o descarte ocorre igualmente, por meio de bloco de tratamento de exceção.
+As imagens submetidas para análise são carregadas em memória volátil, processadas pelo reconhecimento de texto embarcado no próprio dispositivo (seção 3.1) e descartadas imediatamente após a extração do texto. A imagem não sai do dispositivo em nenhuma hipótese: não é transmitida a servidor próprio, a provedor de visão computacional nem a qualquer outro terceiro. Não há gravação em disco local, cache de aplicação, storage em nuvem ou banco de dados. Eventual arquivo temporário criado pelo seletor de mídia do sistema operacional é removido na mesma rotina. Em caso de falha ou interrupção do fluxo, o descarte ocorre igualmente, por meio de bloco de tratamento de exceção.
 
 ## **5.2 Mascaramento Local de Dados Estruturados**
 
@@ -118,7 +122,7 @@ Antes da transmissão à nuvem, o texto extraído é submetido a uma rotina de s
 
 ## **5.3 Transmissão e Retenção em Terceiros**
 
-A comunicação com as APIs externas ocorre sobre TLS. A contratação dos provedores de OCR e LLM restringe-se a planos corporativos cujos termos de serviço vedem expressamente o uso do conteúdo submetido para treinamento de modelos e estabeleçam retenção nula ou de curta duração para fins exclusivos de abuso. Essa condição é requisito de seleção de fornecedor, não preferência: provedores que não a ofereçam ficam inelegíveis para a arquitetura. A relação dos terceiros efetivamente empregados, bem como a finalidade de cada transmissão, deve constar da política de privacidade apresentada ao usuário.
+A comunicação com as APIs externas ocorre sobre TLS. A transmissão de conteúdo derivado da conversa a terceiros envolve apenas o provedor de LLM, que recebe o texto previamente mascarado; a imagem não é transmitida, pois a extração de caracteres ocorre no dispositivo (seção 5.1). A contratação do provedor de LLM restringe-se a planos corporativos cujos termos de serviço vedem expressamente o uso do conteúdo submetido para treinamento de modelos e estabeleçam retenção nula ou de curta duração para fins exclusivos de abuso. Essa condição é requisito de seleção de fornecedor, não preferência: provedores que não a ofereçam ficam inelegíveis para a arquitetura. A relação dos terceiros efetivamente empregados, bem como a finalidade de cada transmissão, deve constar da política de privacidade apresentada ao usuário.
 
 ## **5.4 Persistência Seletiva no Histórico**
 

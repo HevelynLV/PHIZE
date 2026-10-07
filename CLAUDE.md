@@ -11,7 +11,7 @@ O Phize é um aplicativo móvel (Android/iOS) de segurança preventiva e educaç
 - **Frontend:** Flutter (Dart) — código único para Android e iOS (RNF02).
 - **Autenticação:** Firebase Authentication.
 - **Banco de Dados:** Cloud Firestore (NoSQL) — histórico de análises e base comunitária.
-- **Visão Computacional:** Google Cloud Vision (OCR).
+- **Visão Computacional:** Google ML Kit Text Recognition (OCR embarcado, executado no dispositivo; a imagem não é transmitida a terceiros e não há chave de API nem endpoint de OCR na camada intermediária). Indisponível na plataforma web.
 - **IA/PLN:** LLM sob arquitetura RAG, consultando índice vetorial próprio de padrões de fraude.
 - **Análise de URL:** Google Safe Browsing API (reputação — licenciada apenas para uso não comercial; qualquer evolução do produto para modelo de receita exige migração prévia para a Web Risk API), RDAP (idade de domínio), detecção de typosquetting por distância de edição.
 - As credenciais de APIs de terceiros não são embarcadas no app; chamadas passam por camada intermediária gerenciada pelo servidor.
@@ -22,7 +22,7 @@ Estas regras derivam de RNF01 e RNF07 e **não podem ser flexibilizadas, contorn
 
 ### RNF01 — Três garantias cumulativas (todas obrigatórias simultaneamente)
 
-1. Imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual — nunca gravadas em disco local ou em servidor.
+1. Imagens submetidas são processadas exclusivamente em memória volátil e descartadas imediatamente após a extração textual — nunca gravadas em disco local ou em servidor, e nunca transmitidas a terceiro algum (o OCR é executado no próprio dispositivo; o único terceiro que recebe conteúdo derivado da conversa é o provedor de LLM, e apenas o texto já mascarado).
 2. O texto extraído sofre mascaramento local de dados pessoais estruturados antes de qualquer transmissão à nuvem.
 3. Nenhum conteúdo de conversa (imagem ou texto) é persistido no banco de dados — o histórico armazena apenas o resultado da análise (Score de Risco, categoria da ameaça, explicação pedagógica e data).
 
