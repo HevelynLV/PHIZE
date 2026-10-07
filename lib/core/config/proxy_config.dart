@@ -21,4 +21,8 @@ class ProxyConfig {
   );
 
   static Uri get reputacaoDominio => Uri.parse('$urlBase/reputacaoDominio');
+
+  /// Análise do texto mascarado de um print pelo LLM (UC04). Não existe
+  /// endpoint de OCR: a extração é embarcada no dispositivo (RNF06).
+  static Uri get analiseTexto => Uri.parse('$urlBase/analiseTexto');
 }

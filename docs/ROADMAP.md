@@ -8,8 +8,8 @@ Cada fase contém os prompts a serem usados e os pontos de verificação.
 ## ONDE PARAMOS
 
 - **Data:** 2026-10-07
-- **Última tarefa concluída:** Prompt 6.1 — captura de imagem com Zero-Persistence (235 testes)
-- **Próximo passo:** Prompt 6.2 — OCR e pipeline do UC04
+- **Última tarefa concluída:** Prompt 6.2 — pipeline do UC04 (384 testes)
+- **Próximo passo:** conectar o pipeline do UC04 à tela de resultado
 
 ---
 
@@ -195,7 +195,7 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | ~~Pontos de corte entre as 3 faixas de cor~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
 | ~~Limite de domínio recém-criado~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
 | ~~Regra de verificação incompleta~~ — **decidido: v1.0, ver docs/score-calibracao.md** | ~~Fase 2~~ Resolvida | RF07 |
-| ~~Volume mínimo de texto do OCR~~ — **decidido: v1.0, ver docs/limite-texto-ocr.md** | ~~Fase 6~~ Resolvida | UC04 |
+| ~~Volume mínimo de texto do OCR~~ — **decidido: v1.1, ver docs/limite-texto-ocr.md** | ~~Fase 6~~ Resolvida | UC04 |
 | Limiar de denúncias para ocultar reporte | Fase 9 | RF11 |
 | ~~Estrutura de pastas: por camada ou por feature~~ — **decidido: por feature** | ~~Fase 1~~ Resolvida | CLAUDE.md §6, commit `f17bb5c` |
 | Bloquear acesso de usuário com e-mail não verificado? | Fase 1 (pode ser revista depois) | RF01 / UC01 |
@@ -206,6 +206,8 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 | ~~Provedor de LLM com termos que vedem uso para treinamento (RNF07)~~ — **decidido: contratado** | ~~Fase 6.2~~ Resolvida | custo recorrente |
 | ~~Ativar Cloud Vision e criar chave restrita~~ — **dispensado: OCR embarcado (decisão de 2026-10-07)** | ~~Fase 6.2~~ Resolvida | console |
 | Validação da troca do OCR para reconhecimento embarcado (ML Kit), decisão de 2026-10-07 | Não bloqueante | RNF06 |
+| Validação das categorias de ameaça v1.0 (docs/categorias-ameaca.md) | Não bloqueante | RNF07 / UC04 |
+| Validação do limite de texto v1.1 (docs/limite-texto-ocr.md) | Não bloqueante | RF04 / UC04 |
 
 > Padrão adotado: **não bloquear**, seguindo o UC01.
 
@@ -234,8 +236,13 @@ Nenhuma delas está nos documentos. São decisões humanas — se ninguém defin
 - A remoção real do temporário nunca foi validada em dispositivo ou emulador Android; os testes usam sistema de arquivos em memória.
 - Quando o fluxo for ligado à tela (6.2), avaliar a coincidência de tempo entre a limpeza da inicialização e uma seleção em curso.
 - A camada de tela não pode exibir nem gravar em log a `FileSystemException` da captura: a mensagem traz o caminho do temporário, que inclui o nome original do print.
-- Validar a precisão do reconhecimento embarcado (ML Kit) com prints reais de WhatsApp e SMS, em tema claro e escuro, antes de considerar o RNF06 cumprido.
+- Validar o reconhecimento embarcado (ML Kit) em aparelho Android, com prints reais de WhatsApp e SMS, em tema claro e escuro, antes de considerar o RNF06 cumprido.
 - A arquitetura (3.2) não define onde o texto analisado é convertido em embedding para a recuperação RAG. Se a conversão ocorrer por API, haverá uma segunda etapa remota, o que afeta o RNF03 e exige registro no ciclo de vida do dado textual do RNF07. Definir na Fase 7.
+- Validar a chamada ao Gemini real (Function `analiseTexto`) com a chave configurada em `functions/.env.local`.
+- O mascaramento local não cobre todas as grafias dos dados listados; os formatos não cobertos estão registrados na limitação declarada do RNF07 (`docs/requisitos.md`).
+- O modelo é instruído a nunca afirmar que a mensagem é segura, mas o código não verifica a explicação devolvida.
+- Os trechos destacados do RF04 não são devolvidos pelo pipeline do UC04; decidir no passo da tela, considerando que carregam conteúdo da conversa.
+- O streaming do RNF03 não foi implementado: a resposta do modelo chega inteira.
 
 ---
 
@@ -561,7 +568,7 @@ Substituir o marcador provisório da Fase 4 em `analisador_link.dart` pela consu
 
 ---
 
-## FASE 6 — TRILHA DO PRINT (UC04)
+## FASE 6 — TRILHA DO PRINT (UC04) — concluída quanto ao código
 
 **A partir daqui o Android é obrigatório.**
 
@@ -618,7 +625,7 @@ Rode flutter analyze e flutter test e me mostre o resultado dos
 dois. Trabalhe na branch atual, sem commits.
 ```
 
-### Prompt 6.2 — OCR e pipeline
+### Prompt 6.2 — OCR e pipeline (concluído)
 
 > **DESBLOQUEADO (2026-10-07):** as quatro definições de que dependia foram resolvidas — volume mínimo de texto do OCR (`docs/limite-texto-ocr.md`), provedor de LLM (contratado), chave do Cloud Vision (dispensada pelo OCR embarcado) e execução sem RAG antes da Fase 7 (decisão abaixo).
 
@@ -635,6 +642,8 @@ dois. Trabalhe na branch atual, sem commits.
 
 > **DECISÃO (2026-10-07):** o Prompt 6.2 é implementado **SEM RAG**. A recuperação na base de conhecimento é acrescentada na Fase 7, conforme o RNF05, que a define como condição de operação da camada de PLN. Até lá o veredito do modelo não é fundamentado em padrões catalogados, o que deve ser considerado em qualquer demonstração.
 
+> **DECISÃO (2026-10-07):** enquanto a base de conhecimento não existir, a análise de print é tratada como **verificação incompleta**. Aplica-se a regra de `docs/score-calibracao.md` que impede a faixa verde, preservando a pontuação real, e o usuário é informado de que a comparação com padrões catalogados não foi realizada. A regra deixa de valer quando o RAG for conectado ao UC04 na Fase 7.
+
 **[CLAUDE CODE]**
 ```
 Conecte o fluxo do UC04: imagem → OCR embarcado no dispositivo
@@ -649,6 +658,8 @@ de OCR na Function.
 
 Trate todas as exceções listadas no UC04.
 ```
+
+> **REGISTRO — mascaramento local na Fase 6:** a rotina de mascaramento recebeu cinco rodadas de correção durante a Fase 6 (boleto em formato impresso; boleto de convênio; telefone com espaços e celular de 11 dígitos rotulado como CPF; CPF com espaços ou barra e telefone sem DDD; chave Pix sem hífens e CNPJ com espaços ou alfanumérico). Somadas às duas rodadas da Fase 3, são sete. Todas as lacunas foram encontradas pela execução do código sobre textos reais, não pela suíte de testes, que passava integralmente a cada rodada. Os formatos que permanecem sem cobertura estão na limitação declarada do RNF07.
 
 ---
 

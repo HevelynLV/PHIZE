@@ -8,20 +8,31 @@
  * recebe por configuração.
  *
  * Privacidade: nenhum log desta Function contém a URL ou o domínio
- * consultados. A URL chega no corpo do POST (e não na URL da chamada) para
- * não aparecer nos registros de requisição do emulador ou do Cloud Run.
+ * consultados, nem o texto analisado. Ambos chegam no corpo do POST (e não
+ * na URL da chamada) para não aparecer nos registros de requisição do
+ * emulador ou do Cloud Run.
+ *
+ * Não há endpoint de OCR: a extração de caracteres é embarcada no
+ * dispositivo e a imagem nunca sai dele (RNF06; decisão de 2026-10-07).
  */
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import * as logger from "firebase-functions/logger";
 import { onRequest } from "firebase-functions/v2/https";
 
+import { analisarTextoGemini, textoValido } from "./analiseTexto";
 import {
   JANELA_LIMITE_MS,
+  LIMITE_ANALISES_TEXTO_POR_USUARIO,
   LIMITE_REQUISICOES_POR_USUARIO,
+  MODELO_GEMINI_PADRAO,
   REGIAO,
+  TAMANHO_MAXIMO_TEXTO,
+  TIMEOUT_LLM_MS,
   TIMEOUT_SAFE_BROWSING_MS,
+  VARIAVEL_CHAVE_GEMINI,
   VARIAVEL_CHAVE_SAFE_BROWSING,
+  VARIAVEL_MODELO_GEMINI,
 } from "./config";
 import { LimiteRequisicoes } from "./limiteRequisicoes";
 import { consultarSafeBrowsing, urlValida } from "./safeBrowsing";
@@ -30,6 +41,11 @@ initializeApp();
 
 const limite = new LimiteRequisicoes(
   LIMITE_REQUISICOES_POR_USUARIO,
+  JANELA_LIMITE_MS,
+);
+
+const limiteAnaliseTexto = new LimiteRequisicoes(
+  LIMITE_ANALISES_TEXTO_POR_USUARIO,
   JANELA_LIMITE_MS,
 );
 
@@ -104,6 +120,90 @@ export const reputacaoDominio = onRequest(
       // Rede de segurança: nenhuma falha derruba a Function nem expõe
       // detalhes (nem a URL) na resposta ou no log.
       logger.error("Falha inesperada na consulta de reputação");
+      if (!res.headersSent) {
+        res
+          .status(200)
+          .json({ status: "nao_concluida", motivo: "indisponivel" });
+      }
+    }
+  },
+);
+
+/**
+ * Análise do texto de um print pelo modelo de linguagem (UC04, etapas 7 e
+ * 8). POST com `Authorization: Bearer <ID token do Firebase Auth>` e corpo
+ * `{ "texto": "..." }` — texto JÁ MASCARADO no dispositivo (RNF07, etapa 1).
+ *
+ * Respostas:
+ * - 200 `{ status: "concluida", analise: { sinais, categoria, explicacao } }`
+ * - 200 `{ status: "nao_concluida", motivo: "..." }` (inclui
+ *   `limite_provedor` quando o Gemini recusa por cota)
+ * - 400 texto ausente, vazio ou longo demais
+ * - 401 sem token ou token inválido
+ * - 405 método diferente de POST
+ * - 429 limite de análises do usuário excedido
+ *
+ * O modelo não devolve score: os sinais são convertidos em número pelo
+ * motor determinístico do app (RF07).
+ */
+export const analiseTexto = onRequest(
+  { region: REGIAO, cors: true, maxInstances: 1 },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        res.status(405).json({ erro: "metodo_nao_permitido" });
+        return;
+      }
+
+      const cabecalho = req.get("Authorization") ?? "";
+      const token = cabecalho.startsWith("Bearer ")
+        ? cabecalho.slice("Bearer ".length).trim()
+        : "";
+      if (!token) {
+        res.status(401).json({ erro: "nao_autenticado" });
+        return;
+      }
+
+      let uid: string;
+      try {
+        uid = (await getAuth().verifyIdToken(token)).uid;
+      } catch {
+        res.status(401).json({ erro: "nao_autenticado" });
+        return;
+      }
+
+      if (!limiteAnaliseTexto.permitir(uid)) {
+        res.status(429).json({ erro: "limite_excedido" });
+        return;
+      }
+
+      const texto: unknown = req.body?.texto;
+      if (!textoValido(texto, TAMANHO_MAXIMO_TEXTO)) {
+        res.status(400).json({ erro: "texto_invalido" });
+        return;
+      }
+
+      const resultado = await analisarTextoGemini(
+        texto,
+        process.env[VARIAVEL_CHAVE_GEMINI],
+        {
+          modelo: process.env[VARIAVEL_MODELO_GEMINI] || MODELO_GEMINI_PADRAO,
+          timeoutMs: TIMEOUT_LLM_MS,
+        },
+      );
+
+      if (resultado.status === "nao_concluida") {
+        // Só o motivo — nunca o texto.
+        logger.warn("Análise de texto não concluída", {
+          motivo: resultado.motivo,
+        });
+      }
+
+      res.status(200).json(resultado);
+    } catch {
+      // Rede de segurança: nenhuma falha derruba a Function nem expõe o
+      // texto na resposta ou no log.
+      logger.error("Falha inesperada na análise de texto");
       if (!res.headersSent) {
         res
           .status(200)

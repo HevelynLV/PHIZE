@@ -45,6 +45,10 @@ Nenhum sinal isolado pesa menos de 20 pontos, e a faixa verde vai de 0 a 19. Iss
 
 Se alguma fonte de verificação falhar (indisponibilidade, timeout etc.) e a faixa resultante dos sinais disponíveis for verde, a faixa exibida é elevada para amarelo. A pontuação numérica real apurada com os sinais disponíveis é mantida — não é artificialmente inflada — e o usuário é informado explicitamente de qual verificação específica não pôde ser concluída. A regra existe para que a ausência de sinais detectados nunca seja confundida com a confirmação de ausência de risco quando a verificação está incompleta.
 
+### Ausência da base de conhecimento (análise de print)
+
+Enquanto a base de conhecimento de padrões de fraude (RAG, RNF05) não existir, toda análise de print é tratada como verificação incompleta, e a regra acima se aplica: a faixa verde fica impedida e a pontuação real é mantida. O usuário é informado de que a comparação com padrões de golpe já catalogados não foi realizada. A regra deixa de valer quando a recuperação na base for conectada ao fluxo do UC04 (Fase 7). Decisão de 2026-10-07, registrada em `docs/ROADMAP.md`.
+
 ## Regra de soma
 
 - Soma simples dos pesos dos sinais identificados, com teto de 100 pontos.
@@ -68,3 +72,4 @@ Se alguma fonte de verificação falhar (indisponibilidade, timeout etc.) e a fa
 | Versão | Data | Autor | Alteração |
 | --- | --- | --- | --- |
 | 1.0 | 2026-09-22 | Equipe Phize | Proposta inicial de pesos, faixas e regra de verificação incompleta. Pendente de validação pela equipe. |
+| 1.0 | 2026-10-07 | Equipe Phize | Regra complementar, sem alteração de pesos ou faixas: a ausência da base de conhecimento torna a análise de print verificação incompleta. Pendente de validação pela equipe. |
