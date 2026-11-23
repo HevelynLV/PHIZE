@@ -14,6 +14,9 @@ import '../../domain/auth_validators.dart';
 import '../widgets/esqueci_senha_dialog.dart';
 
 /// Tela de Login (RF02 / UC02).
+///
+/// O visual é sempre escuro, nos dois temas: as cores ficam fixas aqui, com
+/// texto claro sobre o fundo azul-marinho (contraste de pelo menos 4,5:1).
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -35,6 +38,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const _fundo = Color(0xFF050A24);
+  static const _campo = Color(0xFF0E1233);
+  static const _bordaCampo = Color(0xFF2B3A7A);
+  static const _roxoClaro = Color(0xFF8FA0FF);
+  static const _textoSuave = Color(0xFFA3A9D6);
+  static const _erro = Color(0xFFFF8A80);
+
   late final AuthRepository _authRepository =
       widget.authRepository ?? FirebaseAuthRepository();
   final LoginAttemptTracker _tentativas = LoginAttemptTracker();
@@ -47,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
   String? _erroGeral;
   bool _carregando = false;
   bool _bloqueado = false;
+  bool _ocultarSenha = true;
 
   static const String _mensagemBloqueio =
       'Muitas tentativas de login incorretas. Por segurança, tente '
@@ -155,112 +166,400 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  InputDecoration _decoracao({
+    required String dica,
+    required IconData icone,
+    String? erro,
+    Widget? sufixo,
+  }) {
+    OutlineInputBorder borda(Color cor) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: BorderSide(color: cor),
+        );
+
+    return InputDecoration(
+      hintText: dica,
+      hintStyle: const TextStyle(color: _textoSuave, fontSize: 17),
+      errorText: erro,
+      errorStyle: const TextStyle(color: _erro, fontSize: 14),
+      filled: true,
+      fillColor: _campo,
+      prefixIcon: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 8),
+        child: Icon(icone, color: const Color(0xFFC3C9F7), size: 26),
+      ),
+      suffixIcon: sufixo,
+      contentPadding: const EdgeInsets.symmetric(vertical: 22),
+      enabledBorder: borda(_bordaCampo),
+      focusedBorder: borda(_roxoClaro),
+      errorBorder: borda(_erro),
+      focusedErrorBorder: borda(_erro),
+      border: borda(_bordaCampo),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Entrar')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(child: MarcaPhize(tamanho: 40)),
-              const SizedBox(height: 32),
-              if (widget.caixaCompartilhamento case final caixa?)
-                ListenableBuilder(
-                  listenable: caixa,
-                  builder: (_, _) => caixa.temPendente
-                      ? const Padding(
-                          key: Key('login_conteudo_aguardando'),
+      backgroundColor: _fundo,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: CustomPaint(painter: _FundoPainter())),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Center(
+                        child: MarcaPhize(tamanho: 52),
+                      ),
+                      const SizedBox(height: 22),
+                      const Center(
+                        child: Text.rich(
+                          TextSpan(
+                            style: TextStyle(
+                              fontSize: 18,
+                              letterSpacing: 0.8,
+                              color: Color(0xFFC3C9F7),
+                            ),
+                            children: [
+                              TextSpan(text: 'Aprenda. Evolua. '),
+                              TextSpan(
+                                text: 'Descubra.',
+                                style: TextStyle(color: _roxoClaro),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      if (widget.caixaCompartilhamento case final caixa?)
+                        ListenableBuilder(
+                          listenable: caixa,
+                          builder: (_, _) => caixa.temPendente
+                              ? const Padding(
+                                  key: Key('login_conteudo_aguardando'),
+                                  padding: EdgeInsets.only(bottom: 16),
+                                  child: Text(
+                                    'Entre na sua conta para ver a análise do '
+                                    'que você compartilhou.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      if (_bloqueado)
+                        const Padding(
                           padding: EdgeInsets.only(bottom: 16),
                           child: Text(
-                            'Entre na sua conta para ver a análise do que você '
-                            'compartilhou.',
+                            _mensagemBloqueio,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: _erro, fontSize: 15),
                           ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              if (_bloqueado)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    _mensagemBloqueio,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                        ),
+                      if (_erroGeral != null && !_bloqueado)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Text(
+                            _erroGeral!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: _erro, fontSize: 15),
+                          ),
+                        ),
+                      TextField(
+                        key: const Key('login_email'),
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.next,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 17),
+                        cursorColor: _roxoClaro,
+                        decoration: _decoracao(
+                          dica: 'E-mail',
+                          icone: Icons.mail_outline,
+                          erro: _erroEmail,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      TextField(
+                        key: const Key('login_senha'),
+                        controller: _senhaController,
+                        obscureText: _ocultarSenha,
+                        autofillHints: const [AutofillHints.password],
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) {
+                          if (!_carregando && !_bloqueado) _entrar();
+                        },
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 17),
+                        cursorColor: _roxoClaro,
+                        decoration: _decoracao(
+                          dica: 'Senha',
+                          icone: Icons.lock_outline,
+                          erro: _erroSenha,
+                          sufixo: IconButton(
+                            tooltip: _ocultarSenha
+                                ? 'Mostrar senha'
+                                : 'Ocultar senha',
+                            onPressed: () => setState(
+                              () => _ocultarSenha = !_ocultarSenha,
+                            ),
+                            icon: Icon(
+                              _ocultarSenha
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: _textoSuave,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _abrirEsqueciSenha,
+                          style: TextButton.styleFrom(
+                            foregroundColor: _roxoClaro,
+                            minimumSize: const Size(48, 48),
+                          ),
+                          child: const Text(
+                            'Esqueci minha senha',
+                            style: TextStyle(
+                              fontSize: 15,
+                              decoration: TextDecoration.underline,
+                              decorationColor: _roxoClaro,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _BotaoEntrar(
+                        carregando: _carregando,
+                        habilitado: !_carregando && !_bloqueado,
+                        onPressed: _entrar,
+                      ),
+                      if (!kIsWeb) ...[
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          key: const Key('login_google'),
+                          onPressed: _carregando ? null : _entrarComGoogle,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            disabledForegroundColor: _textoSuave,
+                            minimumSize: const Size.fromHeight(60),
+                            side: const BorderSide(color: _bordaCampo),
+                            shape: const StadiumBorder(),
+                            textStyle: const TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          icon: const Icon(Icons.account_circle_outlined),
+                          label: const Text('Continuar com Google'),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      _CriarConta(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed(AppRoutes.cadastro),
+                      ),
+                    ],
                   ),
                 ),
-              if (_erroGeral != null && !_bloqueado)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    _erroGeral!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ),
-              TextField(
-                key: const Key('login_email'),
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'E-mail',
-                  errorText: _erroEmail,
-                ),
-                keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 16),
-              TextField(
-                key: const Key('login_senha'),
-                controller: _senhaController,
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  errorText: _erroSenha,
-                ),
-                obscureText: true,
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _abrirEsqueciSenha,
-                  child: const Text('Esqueci minha senha'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                key: const Key('login_entrar'),
-                onPressed: (_carregando || _bloqueado) ? null : _entrar,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: _carregando
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Entrar'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (!kIsWeb) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const Key('login_google'),
-                  onPressed: _carregando ? null : _entrarComGoogle,
-                  icon: const Icon(Icons.account_circle_outlined),
-                  label: const Text('Continuar com Google'),
-                ),
-              ],
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(AppRoutes.cadastro),
-                child: const Text('Criar conta'),
-              ),
-            ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Botão principal com degradê e brilho. É um [FilledButton] de verdade
+/// (transparente, com o degradê por baixo) para manter a semântica de botão.
+class _BotaoEntrar extends StatelessWidget {
+  const _BotaoEntrar({
+    required this.carregando,
+    required this.habilitado,
+    required this.onPressed,
+  });
+
+  final bool carregando;
+  final bool habilitado;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: habilitado || carregando ? 1 : 0.55,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF3F8CFF), Color(0xFF3A2BFF), Color(0xFF8B5CFF)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4C6EF5).withValues(alpha: 0.45),
+              blurRadius: 28,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FilledButton(
+          key: const Key('login_entrar'),
+          onPressed: habilitado ? onPressed : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.white,
+            shadowColor: Colors.transparent,
+            minimumSize: const Size.fromHeight(66),
+            shape: const StadiumBorder(),
+            textStyle: const TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          child: carregando
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.login, size: 26),
+                    SizedBox(width: 14),
+                    Text('Entrar'),
+                  ],
+                ),
         ),
       ),
     );
   }
+}
+
+class _CriarConta extends StatelessWidget {
+  const _CriarConta({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    const linha = Expanded(
+      child: Divider(color: Color(0xFF2B3A9A), thickness: 1, height: 1),
+    );
+
+    return Row(
+      children: [
+        linha,
+        TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFFA99BFF),
+            minimumSize: const Size(48, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+          ),
+          child: const Text(
+            'Criar conta',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+        ),
+        linha,
+      ],
+    );
+  }
+}
+
+/// Fundo: duas formas azuis nos cantos, arcos finos e estrelinhas.
+class _FundoPainter extends CustomPainter {
+  const _FundoPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final todo = Rect.fromLTWH(0, 0, w, h);
+
+    // Forma do canto superior esquerdo.
+    final topo = Path()
+      ..moveTo(0, 0)
+      ..lineTo(0.42 * w, 0)
+      ..cubicTo(0.40 * w, 0.06 * h, 0.24 * w, 0.10 * h, 0, 0.14 * h)
+      ..close();
+    canvas.drawPath(
+      topo,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Color(0xFF4B4BFF), Color(0xFF0B1450)],
+        ).createShader(todo),
+    );
+
+    // Forma do canto inferior direito.
+    final base = Path()
+      ..moveTo(w, h)
+      ..lineTo(0.47 * w, h)
+      ..cubicTo(0.50 * w, 0.91 * h, 0.74 * w, 0.84 * h, w, 0.85 * h)
+      ..close();
+    canvas.drawPath(
+      base,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.bottomRight,
+          end: Alignment.topLeft,
+          colors: [Color(0xFF3D4DFF), Color(0xFF0B1450)],
+        ).createShader(todo),
+    );
+
+    // Arcos finos.
+    final arco = Paint()
+      ..color = const Color(0xFF2B3A9A).withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawCircle(Offset(0.05 * w, -0.02 * h), 0.62 * w, arco);
+    canvas.drawCircle(Offset(1.05 * w, 1.02 * h), 0.62 * w, arco);
+
+    // Estrelinhas de quatro pontas.
+    final brilho = Paint()..color = const Color(0xFF5B8DFF);
+    _estrela(canvas, Offset(0.79 * w, 0.19 * h), 0.032 * w, brilho);
+    _estrela(canvas, Offset(0.86 * w, 0.225 * h), 0.016 * w, brilho);
+    _estrela(canvas, Offset(0.17 * w, 0.205 * h), 0.017 * w, brilho);
+    _estrela(canvas, Offset(0.20 * w, 0.825 * h), 0.021 * w, brilho);
+    _estrela(canvas, Offset(0.13 * w, 0.875 * h), 0.012 * w, brilho);
+  }
+
+  void _estrela(Canvas canvas, Offset c, double r, Paint paint) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy - r)
+      ..quadraticBezierTo(c.dx, c.dy, c.dx + r, c.dy)
+      ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy + r)
+      ..quadraticBezierTo(c.dx, c.dy, c.dx - r, c.dy)
+      ..quadraticBezierTo(c.dx, c.dy, c.dx, c.dy - r)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter antigo) => false;
 }
