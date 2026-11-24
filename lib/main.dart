@@ -117,13 +117,11 @@ class _PhizeAppState extends State<PhizeApp> {
   Widget build(BuildContext context) {
     return AparenciaApp(
       controle: _preferencias,
-      construir: (claro, escuro, modo, builder) => MaterialApp(
+      construir: (tema, builder) => MaterialApp(
         navigatorKey: _navegador,
         title: 'Phize',
         debugShowCheckedModeBanner: false,
-        theme: claro,
-        darkTheme: escuro,
-        themeMode: modo,
+        theme: tema,
         builder: builder,
         // `initialRoute` empilharia também a rota '/', que cai no login: a
         // tela inicial ganharia uma seta para voltar ao login sem encerrar a

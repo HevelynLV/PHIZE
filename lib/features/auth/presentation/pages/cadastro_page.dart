@@ -148,7 +148,7 @@ class _CadastroPageState extends State<CadastroPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Center(
-                        child: MarcaPhize(tamanho: 52),
+                        child: MarcaPhize(tamanho: 52, cor: Colors.white),
                       ),
                       const SizedBox(height: 22),
                       const Center(
@@ -360,7 +360,7 @@ class _BotaoCadastrar extends StatelessWidget {
                   children: [
                     Icon(Icons.person_add_alt_1_outlined, size: 26),
                     SizedBox(width: 14),
-                    Text('Criar conta'),
+                    Flexible(child: Text('Criar conta')),
                   ],
                 ),
         ),
@@ -380,23 +380,30 @@ class _JaTenhoConta extends StatelessWidget {
       child: Divider(color: Color(0xFF2B3A9A), thickness: 1, height: 1),
     );
 
-    return Row(
-      children: [
-        linha,
-        TextButton(
-          onPressed: onPressed,
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFFA99BFF),
-            minimumSize: const Size(48, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+    // Com letra muito grande, o botão pode ocupar a linha toda e quebrar.
+    return LayoutBuilder(
+      builder: (context, limites) => Row(
+        children: [
+          linha,
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: limites.maxWidth),
+            child: TextButton(
+              onPressed: onPressed,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFA99BFF),
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+              ),
+              child: const Text(
+                'Já tenho conta',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            ),
           ),
-          child: const Text(
-            'Já tenho conta',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-        ),
-        linha,
-      ],
+          linha,
+        ],
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../domain/meus_reportes_repository.dart';
 import '../../domain/novo_reporte.dart';
 import '../../domain/preparacao_reporte.dart';
 import '../../domain/reporte_comunidade.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 import 'reportar_golpe_page.dart';
 
 /// Edição de um reporte pelo autor (RF16, UC09): só título e relato, que
@@ -72,7 +73,7 @@ class _EditarReportePageState extends State<EditarReportePage> {
       fontSize: 14,
       color: context.cores.textoSecundario,
     );
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Editar reporte')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -123,6 +124,7 @@ class _EditarReportePageState extends State<EditarReportePage> {
           const SizedBox(height: 16),
           FilledButton(
             key: const Key('editar_salvar'),
+            style: estiloBotaoDegrade,
             onPressed: _salvando ? null : _salvar,
             child: _salvando
                 ? const SizedBox(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/tutorial_repository.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Uma etapa do tutorial (RF13): uma cena simulada do app, desenhada num
 /// celular, e um cartão com a explicação.
@@ -173,6 +174,7 @@ class _TutorialPageState extends State<TutorialPage> {
                       Expanded(
                         child: FilledButton(
                           key: const Key('tutorial_proximo'),
+                          style: estiloBotaoDegrade,
                           onPressed: _ultima
                               ? _fechar
                               : () => _irPara(_atual + 1),

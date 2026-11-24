@@ -29,7 +29,7 @@ import '../support/fake_meus_reportes_repository.dart';
 import '../support/fake_tutorial_repository.dart';
 
 /// Telas principais no maior tamanho de letra do perfil (RF14), em tela de
-/// celular pequeno, nos dois temas: nenhuma pode estourar o layout.
+/// celular pequeno: nenhuma pode estourar o layout.
 
 final _resultadoLink = ResultadoAnaliseLink(
   score: ExemploTutorialLink.todos.first.resultado,
@@ -166,10 +166,7 @@ Future<void> _abrir(
 }
 
 void main() {
-  for (final (nomeTema, tema) in [
-    ('escuro', AppTheme.dark),
-    ('claro', AppTheme.light),
-  ]) {
+  for (final (nomeTema, tema) in [('do app', AppTheme.noturno)]) {
     group('tema $nomeTema, letra muito grande', () {
       final rotas = <String, (String, Object?)>{
         'login': (AppRoutes.login, null),
@@ -248,7 +245,7 @@ void main() {
 
     for (final (tema, cores) in [
       (Brightness.light, CoresTema.claro),
-      (Brightness.dark, CoresTema.escuro),
+      (Brightness.dark, CoresTema.noturno),
     ]) {
       for (final faixa in FaixaRisco.values) {
         final texto = faixa.corTextoEm(tema);

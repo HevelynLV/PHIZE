@@ -7,6 +7,7 @@ import '../../domain/rotulos_risco.dart';
 import '../widgets/aviso_card.dart';
 import '../widgets/o_que_fazer_card.dart';
 import '../widgets/termometro_risco.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 import 'historico_page.dart';
 
 /// Detalhe de um registro do histórico (UC06, passos 4 e 5). Mostra só o que
@@ -25,7 +26,7 @@ class DetalheHistoricoPage extends StatelessWidget {
     final titulo = Theme.of(context).textTheme.titleMedium;
     final categoria = analise.categoria;
 
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Detalhe da Análise')),
       body: SafeArea(
         child: SingleChildScrollView(

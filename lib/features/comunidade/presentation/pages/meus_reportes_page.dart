@@ -7,6 +7,7 @@ import '../../data/meus_reportes_repository_firestore.dart';
 import '../../domain/meus_reportes_repository.dart';
 import '../../domain/novo_reporte.dart';
 import '../../domain/reporte_comunidade.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// "Meus reportes" (RF16, UC09, UC10): os reportes que a conta publicou, com
 /// editar e excluir. Só esta tela mostra que um reporte é da pessoa; o feed
@@ -92,7 +93,7 @@ class _MeusReportesPageState extends State<MeusReportesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Meus reportes')),
       body: FutureBuilder<List<MeuReporte>>(
         future: _reportes,

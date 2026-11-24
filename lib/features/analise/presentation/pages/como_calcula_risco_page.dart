@@ -5,6 +5,7 @@ import '../../domain/rotulos_risco.dart';
 import '../../domain/sinal_link.dart';
 import '../../domain/sinal_texto_print.dart';
 import '../widgets/aviso_card.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// "Como o Phize calcula o risco" (RF14, RF07), aberta pelo perfil.
 ///
@@ -55,7 +56,7 @@ class ComoCalculaRiscoPage extends StatelessWidget {
       ),
     );
 
-    return Scaffold(
+    return ScaffoldPhize(
       // Título curto: o nome completo, usado no perfil, ficava cortado na
       // barra com letra muito grande (RF14).
       appBar: AppBar(title: const Text('Cálculo do risco')),
@@ -75,8 +76,10 @@ class ComoCalculaRiscoPage extends StatelessWidget {
               const Text(
                 'Na análise de print, uma inteligência artificial lê o texto e '
                 'aponta quais sinais aparecem. Ela não dá a nota. O número sai '
-                'de uma regra fixa do próprio app, igual para todo mundo: a '
-                'mesma mensagem sempre recebe o mesmo número.',
+                'de uma regra fixa do próprio app, igual para todo mundo: os '
+                'mesmos sinais sempre dão o mesmo número. Às vezes, a '
+                'inteligência artificial pode apontar sinais diferentes na '
+                'mesma mensagem.',
               ),
               titulo('Sinais procurados nos prints'),
               for (final sinal in SinalTextoPrint.values) item(sinal.titulo),

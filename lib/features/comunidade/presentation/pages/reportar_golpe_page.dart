@@ -225,7 +225,10 @@ class _ReportarGolpePageState extends State<ReportarGolpePage> {
             style: FilledButton.styleFrom(
               backgroundColor: _verde,
               foregroundColor: const Color(0xFF03231B),
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              textStyle: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontWeight: FontWeight.w700,
+              ),
             ),
             onPressed: () => Navigator.of(contexto).pop(),
             child: const Text('Ok'),
@@ -384,6 +387,7 @@ class _ReportarGolpePageState extends State<ReportarGolpePage> {
                             borderRadius: BorderRadius.circular(18),
                           ),
                           textStyle: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
                           ),
@@ -427,6 +431,7 @@ class _ReportarGolpePageState extends State<ReportarGolpePage> {
                                 style: TextButton.styleFrom(
                                   foregroundColor: _amarelo,
                                   textStyle: const TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -452,6 +457,7 @@ class _ReportarGolpePageState extends State<ReportarGolpePage> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             textStyle: const TextStyle(
+                              fontFamily: 'PlusJakartaSans',
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),

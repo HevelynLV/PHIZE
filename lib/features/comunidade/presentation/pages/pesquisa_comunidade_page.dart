@@ -7,6 +7,7 @@ import '../../domain/feed_repository.dart';
 import '../../domain/pesquisa_reportes.dart';
 import '../../domain/reporte_comunidade.dart';
 import '../widgets/cartao_reporte.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Pesquisa da comunidade (RF15, UC08): por palavras ou colando um link. O
 /// link vira hash no aparelho, como no reporte (RF05), e nunca é enviado nem
@@ -107,7 +108,7 @@ class _PesquisaComunidadePageState extends State<PesquisaComunidadePage> {
       fontSize: 14,
       color: context.cores.textoSecundario,
     );
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Pesquisar na comunidade')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

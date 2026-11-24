@@ -157,11 +157,16 @@ class _AnalisarLinkPageState extends State<AnalisarLinkPage> {
           children: [
             Icon(Icons.link_rounded, color: _ciano, size: 24),
             SizedBox(width: 8),
-            Text(
-              'Analisar link',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Analisar link',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ],
@@ -326,6 +331,7 @@ class _AnalisarLinkPageState extends State<AnalisarLinkPage> {
                                         vertical: 8,
                                       ),
                                       textStyle: const TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -401,7 +407,7 @@ class _AnalisarLinkPageState extends State<AnalisarLinkPage> {
                                       Icon(Icons.verified_user_outlined,
                                           size: 22),
                                       SizedBox(width: 10),
-                                      Text('Verificar link'),
+                                      Flexible(child: Text('Verificar link')),
                                     ],
                                   ),
                                 ),
@@ -461,12 +467,14 @@ class _AnalisarLinkPageState extends State<AnalisarLinkPage> {
                                     size: 19,
                                   ),
                                   SizedBox(width: 8),
-                                  Text(
-                                    'O que verificamos para você',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.w700,
+                                  Flexible(
+                                    child: Text(
+                                      'O que verificamos para você',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -479,7 +487,8 @@ class _AnalisarLinkPageState extends State<AnalisarLinkPage> {
                               SizedBox(height: 6),
                               _ItemVerificacao(
                                 texto:
-                                    'Encurtadores suspeitos e redirecionamentos ocultos',
+                                    'Endereços apontados como possivelmente perigosos pelo '
+                                    'Google Safe Browsing',
                               ),
                               SizedBox(height: 6),
                               _ItemVerificacao(

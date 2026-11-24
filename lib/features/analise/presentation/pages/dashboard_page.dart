@@ -30,7 +30,7 @@ class DashboardPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        title: const MarcaPhize(tamanho: 32),
+        title: const MarcaPhize(tamanho: 32, cor: Colors.white),
       ),
       body: Stack(
         children: [
@@ -163,13 +163,15 @@ class _CartaoPrincipal extends StatelessWidget {
                             color: _ciano,
                           ),
                           SizedBox(width: 7),
-                          Text(
-                            'Proteção contra golpes',
-                            style: TextStyle(
-                              color: Color(0xFFE0E6FF),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                          Flexible(
+                            child: Text(
+                              'Proteção contra golpes',
+                              style: TextStyle(
+                                color: Color(0xFFE0E6FF),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
                         ],
@@ -248,7 +250,7 @@ class _CartaoPrincipal extends StatelessWidget {
                         label: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Analisar print'),
+                            Flexible(child: Text('Analisar print')),
                             Icon(Icons.arrow_forward_rounded, size: 20),
                           ],
                         ),
@@ -297,7 +299,7 @@ class _CartaoPrincipal extends StatelessWidget {
                     label: const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Analisar link'),
+                        Flexible(child: Text('Analisar link')),
                         Icon(
                           Icons.arrow_forward_rounded,
                           size: 20,
@@ -365,11 +367,13 @@ class _ComoFunciona extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              'Como funciona',
-              style: tema.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+            Flexible(
+              child: Text(
+                'Como funciona',
+                style: tema.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],

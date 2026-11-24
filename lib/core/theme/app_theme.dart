@@ -52,18 +52,20 @@ class CoresTema extends ThemeExtension<CoresTema> {
     erroClaro: CoresPhize.erroClaro,
   );
 
-  static const CoresTema escuro = CoresTema(
-    azul: Color(0xFF8FA6FF),
+  /// Azul-marinho do app (RF14: um só tema).
+  /// Todo texto mantém contraste de pelo menos 4,5:1.
+  static const CoresTema noturno = CoresTema(
+    azul: Color(0xFF8FA0FF),
     azulEscuro: Color(0xFFC9D4FF),
-    azulClaro: Color(0xFF243063),
-    tinta: Color(0xFFE8EBF5),
-    textoSecundario: Color(0xFFA9B1C7),
-    fundo: Color(0xFF0F1428),
-    superficie: Color(0xFF171D33),
-    fundoSuave: Color(0xFF1F2640),
-    borda: Color(0xFF3A4363),
+    azulClaro: Color(0xFF1B2666),
+    tinta: Color(0xFFEEF0FA),
+    textoSecundario: Color(0xFFA3A9D6),
+    fundo: Color(0xFF050A24),
+    superficie: Color(0xFF0E1233),
+    fundoSuave: Color(0xFF151C4A),
+    borda: Color(0xFF2B3A7A),
     erro: Color(0xFFFF8A80),
-    erroClaro: Color(0xFF3D1A1A),
+    erroClaro: Color(0xFF3D1A2A),
   );
 
   /// Destaque: botões, ícones ativos e progresso.
@@ -151,10 +153,14 @@ class AppTheme {
 
   static const double _raio = 18;
 
+  /// Só para o celular desenhado dentro do tutorial, sempre claro.
   static ThemeData get light => _construir(CoresTema.claro, Brightness.light);
 
-  /// Variante escura (RF14), com as mesmas formas e tipografia do claro.
-  static ThemeData get dark => _construir(CoresTema.escuro, Brightness.dark);
+  /// Tema do app.
+  static final ThemeData noturno = _construir(
+    CoresTema.noturno,
+    Brightness.dark,
+  );
 
   static ThemeData _construir(CoresTema c, Brightness brilho) {
     final escuro = brilho == Brightness.dark;
@@ -215,7 +221,8 @@ class AppTheme {
         bodySmall: TextStyle(fontSize: 14, height: 1.4),
       ).apply(bodyColor: c.tinta, displayColor: c.tinta),
       appBarTheme: AppBarTheme(
-        backgroundColor: c.fundo,
+        // No app, a barra deixa ver o fundo ilustrado da tela.
+        backgroundColor: escuro ? Colors.transparent : c.fundo,
         foregroundColor: c.tinta,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

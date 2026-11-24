@@ -15,26 +15,13 @@ enum TamanhoLetra {
   final double fator;
 }
 
-/// Tema escolhido no perfil (RF14).
-enum TemaPreferido {
-  sistema('Igual ao do celular'),
-  claro('Claro'),
-  escuro('Escuro');
-
-  const TemaPreferido(this.rotulo);
-
-  final String rotulo;
-}
-
 /// Preferências de acessibilidade, guardadas só no dispositivo (RF14).
 class PreferenciasAparencia {
   const PreferenciasAparencia({
     this.tamanhoLetra = TamanhoLetra.normal,
-    this.tema = TemaPreferido.sistema,
   });
 
   final TamanhoLetra tamanhoLetra;
-  final TemaPreferido tema;
 }
 
 abstract class PreferenciasRepository {
@@ -78,13 +65,7 @@ class ControlePreferencias extends ChangeNotifier {
   /// Lança se a gravação falhar; a preferência continua aplicada nesta
   /// sessão.
   Future<void> mudarTamanhoLetra(TamanhoLetra tamanho) => _mudar(
-        PreferenciasAparencia(tamanhoLetra: tamanho, tema: _atual.tema),
-      );
-
-  /// Lança se a gravação falhar; a preferência continua aplicada nesta
-  /// sessão.
-  Future<void> mudarTema(TemaPreferido tema) => _mudar(
-        PreferenciasAparencia(tamanhoLetra: _atual.tamanhoLetra, tema: tema),
+        PreferenciasAparencia(tamanhoLetra: tamanho),
       );
 
   Future<void> _mudar(PreferenciasAparencia novas) async {

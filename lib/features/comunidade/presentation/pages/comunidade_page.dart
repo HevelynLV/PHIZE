@@ -99,6 +99,44 @@ class _ComunidadePageState extends State<ComunidadePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Com letra grande sobra pouco espaço: o botão sai de cima do conteúdo e
+    // fica fixo acima do menu.
+    final letraGrande = MediaQuery.textScalerOf(context).scale(1) > 1.2;
+    final botaoReportar = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Color(0xFF3F8CFF),
+            Color(0xFF3A2BFF),
+            Color(0xFF8B5CFF),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4C6EF5).withValues(alpha: 0.45),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        key: const Key('comunidade_reportar'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        highlightElevation: 0,
+        onPressed: _reportar,
+        icon: const Icon(Icons.campaign_outlined),
+        label: const Text(
+          'Reportar golpe',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+
     return Scaffold(
       backgroundColor: _fundo,
       extendBodyBehindAppBar: true,
@@ -126,12 +164,17 @@ class _ComunidadePageState extends State<ComunidadePage> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Comunidade',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
+            const Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Comunidade',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ),
             ),
           ],
@@ -171,212 +214,198 @@ class _ComunidadePageState extends State<ComunidadePage> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Cabeçalho de rede colaborativa.
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF141C4E),
-                              Color(0xFF0C1238),
-                              Color(0xFF091B3A),
-                            ],
-                          ),
-                          border: Border.all(
-                            color:
-                                const Color(0xFF3A4FA8).withValues(alpha: 0.7),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF3A2BFF)
-                                  .withValues(alpha: 0.2),
-                              blurRadius: 24,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                child: LayoutBuilder(
+                  builder: (context, limites) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Cabeçalho de rede colaborativa. Com letra grande em
+                      // tela baixa ele rola, para sobrar espaço para o feed.
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: limites.maxHeight * 0.7,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF141C4E),
+                                  Color(0xFF0C1238),
+                                  Color(0xFF091B3A),
+                                ],
+                              ),
+                              border: Border.all(
+                                color:
+                                    const Color(0xFF3A4FA8).withValues(alpha: 0.7),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF3A2BFF)
+                                      .withValues(alpha: 0.2),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const _AvataresRede(),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Rede de alerta coletivo',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15.5,
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                Row(
+                                  children: [
+                                    const _AvataresRede(),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Rede de alerta coletivo',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            ComunidadePage.avisoFeed,
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              color: Color(0xFFC3C9F7),
+                                              height: 1.35,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        ComunidadePage.avisoFeed,
-                                        style: const TextStyle(
-                                          fontSize: 12.5,
-                                          color: Color(0xFFC3C9F7),
-                                          height: 1.35,
-                                        ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: SegmentedButton<OrdemFeed>(
+                                    key: const Key('comunidade_ordem'),
+                                    style: SegmentedButton.styleFrom(
+                                      backgroundColor:
+                                          _fundo.withValues(alpha: 0.65),
+                                      foregroundColor: _textoSuave,
+                                      selectedBackgroundColor:
+                                          _roxoClaro.withValues(alpha: 0.22),
+                                      selectedForegroundColor: Colors.white,
+                                      side: const BorderSide(color: _bordaCampo),
+                                      padding:
+                                          const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
+                                      textStyle: const TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13.5,
+                                      ),
+                                    ),
+                                    segments: [
+                                      for (final ordem in OrdemFeed.values)
+                                        ButtonSegment(
+                                          value: ordem,
+                                          icon: Icon(
+                                            ordem == OrdemFeed.emAlta
+                                                ? Icons.local_fire_department_rounded
+                                                : Icons.schedule_rounded,
+                                            size: 18,
+                                            color: _ordem == ordem
+                                                ? _ciano
+                                                : _textoSuave,
+                                          ),
+                                          label: Text(ordem.nome),
+                                        ),
                                     ],
+                                    selected: {_ordem},
+                                    showSelectedIcon: false,
+                                    onSelectionChanged: (escolha) =>
+                                        _mudarOrdem(escolha.single),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 14),
-                            SizedBox(
-                              width: double.infinity,
-                              child: SegmentedButton<OrdemFeed>(
-                                key: const Key('comunidade_ordem'),
-                                style: SegmentedButton.styleFrom(
-                                  backgroundColor:
-                                      _fundo.withValues(alpha: 0.65),
-                                  foregroundColor: _textoSuave,
-                                  selectedBackgroundColor:
-                                      _roxoClaro.withValues(alpha: 0.22),
-                                  selectedForegroundColor: Colors.white,
-                                  side: const BorderSide(color: _bordaCampo),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  textStyle: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13.5,
-                                  ),
-                                ),
-                                segments: [
-                                  for (final ordem in OrdemFeed.values)
-                                    ButtonSegment(
-                                      value: ordem,
-                                      icon: Icon(
-                                        ordem == OrdemFeed.emAlta
-                                            ? Icons.local_fire_department_rounded
-                                            : Icons.schedule_rounded,
-                                        size: 18,
-                                        color: _ordem == ordem
-                                            ? _ciano
-                                            : _textoSuave,
-                                      ),
-                                      label: Text(ordem.nome),
-                                    ),
-                                ],
-                                selected: {_ordem},
-                                showSelectedIcon: false,
-                                onSelectionChanged: (escolha) =>
-                                    _mudarOrdem(escolha.single),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                          brightness: Brightness.dark,
-                          cardColor: _campo,
-                        ),
-                        child: FutureBuilder<List<ReporteComunidade>>(
-                          future: _reportes,
-                          builder: (context, carga) {
-                            if (carga.connectionState !=
-                                ConnectionState.done) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color: _ciano,
+                      Expanded(
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            brightness: Brightness.dark,
+                            cardColor: _campo,
+                          ),
+                          child: FutureBuilder<List<ReporteComunidade>>(
+                            future: _reportes,
+                            builder: (context, carga) {
+                              if (carga.connectionState !=
+                                  ConnectionState.done) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: _ciano,
+                                  ),
+                                );
+                              }
+                              final reportes = carga.data;
+                              if (carga.hasError || reportes == null) {
+                                return _FalhaCarga(aoTentarDeNovo: _recarregar);
+                              }
+                              if (reportes.isEmpty) {
+                                return const _FeedVazio();
+                              }
+                              return RefreshIndicator(
+                                color: _ciano,
+                                backgroundColor: _campo,
+                                onRefresh: () async {
+                                  _recarregar();
+                                  await _reportes
+                                      .catchError((_) => <ReporteComunidade>[]);
+                                },
+                                child: ListView.separated(
+                                  key: const Key('comunidade_lista'),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 4, 16, 104),
+                                  itemCount: reportes.length,
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(height: 10),
+                                  itemBuilder: (context, i) => CartaoReporte(
+                                    reporte: reportes[i],
+                                    aoTocar: () => _abrir(reportes[i]),
+                                  ),
                                 ),
                               );
-                            }
-                            final reportes = carga.data;
-                            if (carga.hasError || reportes == null) {
-                              return _FalhaCarga(aoTentarDeNovo: _recarregar);
-                            }
-                            if (reportes.isEmpty) {
-                              return const _FeedVazio();
-                            }
-                            return RefreshIndicator(
-                              color: _ciano,
-                              backgroundColor: _campo,
-                              onRefresh: () async {
-                                _recarregar();
-                                await _reportes
-                                    .catchError((_) => <ReporteComunidade>[]);
-                              },
-                              child: ListView.separated(
-                                key: const Key('comunidade_lista'),
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 4, 16, 104),
-                                itemCount: reportes.length,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(height: 10),
-                                itemBuilder: (context, i) => CartaoReporte(
-                                  reporte: reportes[i],
-                                  aoTocar: () => _abrir(reportes[i]),
-                                ),
-                              ),
-                            );
-                          },
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          gradient: const LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              Color(0xFF3F8CFF),
-              Color(0xFF3A2BFF),
-              Color(0xFF8B5CFF),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF4C6EF5).withValues(alpha: 0.45),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
+      floatingActionButton: letraGrande ? null : botaoReportar,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (letraGrande)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: botaoReportar,
             ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          key: const Key('comunidade_reportar'),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          highlightElevation: 0,
-          onPressed: _reportar,
-          icon: const Icon(Icons.campaign_outlined),
-          label: const Text(
-            'Reportar golpe',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ),
+          const PhizeBottomNav(currentIndex: 1),
+        ],
       ),
-      bottomNavigationBar: const PhizeBottomNav(currentIndex: 1),
     );
   }
 }
@@ -467,8 +496,9 @@ class _FeedVazio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
+      child: SingleChildScrollView(
+        // Embaixo, espaço para o botão "Reportar golpe".
+        padding: const EdgeInsets.fromLTRB(28, 28, 28, 104),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -526,8 +556,9 @@ class _FalhaCarga extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
+      child: SingleChildScrollView(
+        // Embaixo, espaço para o botão "Reportar golpe".
+        padding: const EdgeInsets.fromLTRB(28, 28, 28, 104),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(

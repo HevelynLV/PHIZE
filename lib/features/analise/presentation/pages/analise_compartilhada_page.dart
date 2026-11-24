@@ -16,6 +16,7 @@ import '../../../../shared/domain/imagem_em_memoria.dart';
 import '../../domain/resultado_analise_print.dart';
 import '../registro_historico.dart';
 import '../widgets/progresso_analise.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 import 'consentimento_page.dart';
 
 /// Análise do conteúdo recebido por compartilhamento (RF10 / UC11): começa
@@ -222,7 +223,7 @@ class _AnaliseCompartilhadaPageState extends State<AnaliseCompartilhadaPage> {
     final mensagem = _mensagem;
     final etapa = _etapa;
 
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Analisar conteúdo')),
       body: SafeArea(
         child: Padding(
@@ -252,6 +253,7 @@ class _AnaliseCompartilhadaPageState extends State<AnaliseCompartilhadaPage> {
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   key: const Key('compartilhado_escolher_imagem'),
+                  style: estiloBotaoDegrade,
                   onPressed: () => _analisarImagem(escolha.imagem),
                   icon: const Icon(Icons.image_outlined),
                   label: const Text('A imagem'),
@@ -259,6 +261,7 @@ class _AnaliseCompartilhadaPageState extends State<AnaliseCompartilhadaPage> {
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   key: const Key('compartilhado_escolher_link'),
+                  style: estiloBotaoDegrade,
                   onPressed: () => _analisarLink(escolha.link),
                   icon: const Icon(Icons.link),
                   label: const Text('O link'),
@@ -270,12 +273,14 @@ class _AnaliseCompartilhadaPageState extends State<AnaliseCompartilhadaPage> {
                 if (_pedirLogin)
                   FilledButton(
                     key: const Key('compartilhado_entrar_de_novo'),
+                    style: estiloBotaoDegrade,
                     onPressed: _entrarDeNovo,
                     child: const Text('Entrar de novo'),
                   )
                 else
                   FilledButton(
                     key: const Key('compartilhado_inicio'),
+                    style: estiloBotaoDegrade,
                     onPressed: _irAoInicio,
                     child: const Text('Ir para o início'),
                   ),

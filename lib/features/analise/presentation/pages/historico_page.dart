@@ -72,12 +72,17 @@ class _HistoricoPageState extends State<HistoricoPage> {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Histórico de Análises',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
+            const Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Histórico de Análises',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ),
             ),
           ],
@@ -315,6 +320,7 @@ class _HistoricoVazio extends StatelessWidget {
                     ),
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),

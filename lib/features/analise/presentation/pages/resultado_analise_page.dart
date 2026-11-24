@@ -16,6 +16,7 @@ import '../tutorial/tutorial_print.dart';
 import '../widgets/aviso_card.dart';
 import '../widgets/o_que_fazer_card.dart';
 import '../widgets/termometro_risco.dart';
+import '../widgets/visual_noturno.dart';
 
 /// Tela de Resultado da análise de link (RF03, RF07, UC03 passo 8) e de
 /// print (RF04, RF07, UC04 passo 9).
@@ -81,43 +82,38 @@ class ResultadoAnalisePage extends StatelessWidget {
     final resultadoLink = _link;
     final resultadoPrint = _print;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Resultado da Análise'),
-        actions: [
-          IconButton(
-            key: const Key('resultado_como_funciona'),
-            tooltip: 'Como funciona',
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => _abrirTutorial(context),
+    return TelaNoturna(
+      titulo: 'Resultado da Análise',
+      icone: Icons.shield_outlined,
+      acoes: [
+        IconButton(
+          key: const Key('resultado_como_funciona'),
+          tooltip: 'Como funciona',
+          icon: const Icon(Icons.help_outline),
+          onPressed: () => _abrirTutorial(context),
+        ),
+      ],
+      corpo: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CartaoDestaque(
+            child: TermometroRisco(score: score.pontuacao, faixa: score.faixa),
+          ),
+          const SizedBox(height: 16),
+          OQueFazerCard(faixa: score.faixa),
+          if (resultadoLink != null) ..._detalhesLink(context, resultadoLink),
+          if (resultadoPrint != null)
+            ..._detalhesPrint(context, resultadoPrint),
+          const SizedBox(height: 12),
+          const AvisoCard(
+            key: Key('resultado_aviso_permanente'),
+            texto: RotulosRisco.avisoPermanente,
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TermometroRisco(score: score.pontuacao, faixa: score.faixa),
-              const SizedBox(height: 20),
-              OQueFazerCard(faixa: score.faixa),
-              if (resultadoLink != null)
-                ..._detalhesLink(context, resultadoLink),
-              if (resultadoPrint != null)
-                ..._detalhesPrint(context, resultadoPrint),
-              const SizedBox(height: 12),
-              const AvisoCard(
-                key: Key('resultado_aviso_permanente'),
-                texto: RotulosRisco.avisoPermanente,
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
+      rodape: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: FilledButton.tonalIcon(
             key: const Key('resultado_voltar_inicio'),
             onPressed: () => _voltarAoInicio(context),
@@ -136,7 +132,7 @@ class ResultadoAnalisePage extends StatelessWidget {
     final naoConcluidas = resultado.naoConcluidas;
     return [
       if (naoConcluidas.isNotEmpty) ...[
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         _AvisoVerificacaoIncompleta(
           texto:
               'Verificação incompleta. Não foi possível concluir: '
@@ -145,11 +141,20 @@ class ResultadoAnalisePage extends StatelessWidget {
               'exibido na faixa verde.',
         ),
       ],
-      const SizedBox(height: 24),
-      Text('O que verificamos', style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 8),
-      ...resultado.verificacoes.map((v) => _VerificacaoTile(verificacao: v)),
-      const SizedBox(height: 24),
+      const SizedBox(height: 16),
+      CartaoSecao(
+        filhos: [
+          Text(
+            'O que verificamos',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          ...resultado.verificacoes.map(
+            (v) => _VerificacaoTile(verificacao: v),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
       const AvisoCard(
         key: Key('resultado_aviso_falibilidade'),
         texto: RotulosRisco.avisoFalibilidadeReputacao,
@@ -164,66 +169,74 @@ class ResultadoAnalisePage extends StatelessWidget {
     final titulo = Theme.of(context).textTheme.titleMedium;
     return [
       if (resultado.verificacoesNaoConcluidas.isNotEmpty) ...[
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         _AvisoVerificacaoIncompleta(
           texto:
               'Verificação incompleta. '
               '${resultado.verificacoesNaoConcluidas.join(' ')}',
         ),
       ],
-      const SizedBox(height: 24),
-      Text('O que encontramos na mensagem', style: titulo),
-      const SizedBox(height: 8),
-      // Sem ícone de confirmação: ausência de sinais conhecidos não é
-      // ausência de risco, e com verificação incompleta o texto diz isso.
-      // Nem de alerta: o "?" laranja soava como aviso no resultado verde
-      // (ensaio de 2026-11-16). Fica um ícone neutro de informação.
-      if (resultado.sinais.isEmpty)
-        ListTile(
-          key: const Key('resultado_print_sem_sinais'),
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            Icons.info_outline,
-            key: const Key('resultado_print_sem_sinais_icone'),
-            color: context.cores.textoSecundario,
-          ),
-          title: Text(
-            resultado.verificacoesNaoConcluidas.isEmpty
-                ? 'Não identificamos sinais de golpe conhecidos neste texto.'
-                : 'Não identificamos sinais de golpe conhecidos neste texto, '
-                      'mas a verificação não pôde ser completa (veja o aviso '
-                      'acima).',
-          ),
-        )
-      else
-        for (final sinal in SinalTextoPrint.values)
-          if (resultado.sinais.contains(sinal))
-            _SinalTile(
-              titulo: sinal.titulo,
-              trechos: [
-                for (final trecho in resultado.trechos)
-                  if (trecho.sinal == sinal) trecho.texto,
-              ],
+      const SizedBox(height: 16),
+      CartaoSecao(
+        filhos: [
+          Text('O que encontramos na mensagem', style: titulo),
+          const SizedBox(height: 8),
+          // Sem ícone de confirmação: ausência de sinais conhecidos não é
+          // ausência de risco, e com verificação incompleta o texto diz isso.
+          // Nem de alerta: o "?" laranja soava como aviso no resultado verde
+          // (ensaio de 2026-11-16). Fica um ícone neutro de informação.
+          if (resultado.sinais.isEmpty)
+            ListTile(
+              key: const Key('resultado_print_sem_sinais'),
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.info_outline,
+                key: const Key('resultado_print_sem_sinais_icone'),
+                color: context.cores.textoSecundario,
+              ),
+              title: Text(
+                resultado.verificacoesNaoConcluidas.isEmpty
+                    ? 'Não identificamos sinais de golpe conhecidos neste texto.'
+                    : 'Não identificamos sinais de golpe conhecidos neste texto, '
+                          'mas a verificação não pôde ser completa (veja o aviso '
+                          'acima).',
+              ),
+            )
+          else
+            for (final sinal in SinalTextoPrint.values)
+              if (resultado.sinais.contains(sinal))
+                _SinalTile(
+                  titulo: sinal.titulo,
+                  trechos: [
+                    for (final trecho in resultado.trechos)
+                      if (trecho.sinal == sinal) trecho.texto,
+                  ],
+                ),
+          if (resultado.trechos.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              avisoTrechos,
+              key: const Key('resultado_print_aviso_trechos'),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-      if (resultado.trechos.isNotEmpty) ...[
-        const SizedBox(height: 4),
-        Text(
-          avisoTrechos,
-          key: const Key('resultado_print_aviso_trechos'),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-      const SizedBox(height: 16),
-      Text('Tipo de abordagem', style: titulo),
-      const SizedBox(height: 4),
-      Text(
-        resultado.categoria.nome,
-        key: const Key('resultado_print_categoria'),
+          ],
+        ],
       ),
-      const SizedBox(height: 16),
-      Text('Por que isso importa', style: titulo),
-      const SizedBox(height: 4),
-      Text(resultado.explicacao, key: const Key('resultado_print_explicacao')),
+      const SizedBox(height: 12),
+      CartaoSecao(
+        filhos: [
+          Text('Tipo de abordagem', style: titulo),
+          const SizedBox(height: 4),
+          Text(
+            resultado.categoria.nome,
+            key: const Key('resultado_print_categoria'),
+          ),
+          const SizedBox(height: 16),
+          Text('Por que isso importa', style: titulo),
+          const SizedBox(height: 4),
+          Text(resultado.explicacao, key: const Key('resultado_print_explicacao')),
+        ],
+      ),
     ];
   }
 
@@ -315,7 +328,7 @@ class _VerificacaoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icone, situacao) = switch (verificacao.status) {
       StatusVerificacao.sinalEncontrado => (
-        const Icon(Icons.flag, color: Colors.red),
+        const Icon(Icons.flag, color: Color(0xFFFF8A80)),
         'Sinal de risco encontrado',
       ),
       StatusVerificacao.semSinal => (
