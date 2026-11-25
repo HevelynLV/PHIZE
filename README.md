@@ -244,7 +244,6 @@ firestore.rules            regras de segurança do banco
 
 Projeto desenvolvido no Centro Universitário CESUSC, Florianópolis (SC), em 2026.
 
-- Gabriel Mascia
 - Hevelyn Leivas
 - Maisa Grundler
 
