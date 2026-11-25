@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/golpe_da_semana.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Detalhe do "Golpe da semana" (RF17): nome, sinais de alerta e orientação
 /// preventiva, com o texto da ficha revisada, sem reescrita.
@@ -34,7 +35,7 @@ class GolpeDaSemanaPage extends StatelessWidget {
       ),
     );
 
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Golpe da semana')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),

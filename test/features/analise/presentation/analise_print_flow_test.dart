@@ -583,8 +583,8 @@ void main() {
     });
   });
 
-  testWidgets('Dashboard: "Analisar print" ao lado de "Analisar link", com a '
-      'mesma hierarquia visual, abre a tela de seleção do print', (
+  testWidgets('Dashboard: "Analisar print" é a ação principal (preenchida), '
+      '"Analisar link" a secundária (contornada), e abre a seleção do print', (
     tester,
   ) async {
     await _abrir(
@@ -595,7 +595,9 @@ void main() {
 
     final link = find.byKey(const Key('dashboard_analisar_link'));
     final print = find.byKey(const Key('dashboard_analisar_print'));
-    expect(tester.widget(link).runtimeType, tester.widget(print).runtimeType);
+    expect(tester.widget(print), isA<FilledButton>());
+    expect(tester.widget(link), isA<OutlinedButton>());
+    expect(tester.widget<ButtonStyleButton>(link).onPressed, isNotNull);
     expect(tester.widget<ButtonStyleButton>(print).onPressed, isNotNull);
 
     await tester.tap(print);
@@ -1008,7 +1010,8 @@ void main() {
       final icone = tester.widget<Icon>(
         find.byKey(const Key('resultado_print_sem_sinais_icone')),
       );
-      expect(icone.color, CoresPhize.textoSecundario);
+      // Neutra no visual noturno da tela.
+      expect(icone.color, CoresTema.noturno.textoSecundario);
       expect(
         find.descendant(
           of: vazio,

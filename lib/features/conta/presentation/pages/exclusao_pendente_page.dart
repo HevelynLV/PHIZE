@@ -6,6 +6,7 @@ import '../../../auth/domain/auth_exception.dart';
 import '../../../auth/domain/auth_repository.dart';
 import '../../data/conta_repository_firebase.dart';
 import '../../domain/conta_repository.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Conta bloqueada até a exclusão terminar (UC12, "Falha parcial na
 /// exclusão"): daqui só se conclui a remoção ou se sai do aplicativo.
@@ -92,7 +93,7 @@ class _ExclusaoPendentePageState extends State<ExclusaoPendentePage> {
 
     return PopScope(
       canPop: false,
-      child: Scaffold(
+      child: ScaffoldPhize(
         appBar: AppBar(
           title: const Text('Exclusão não concluída'),
           automaticallyImplyLeading: false,
@@ -122,6 +123,7 @@ class _ExclusaoPendentePageState extends State<ExclusaoPendentePage> {
                 const SizedBox(height: 16),
                 FilledButton(
                   key: const Key('exclusao_pendente_concluir'),
+                  style: estiloBotaoDegrade,
                   onPressed: _processando ? null : _concluir,
                   child: const Text('Concluir a exclusão'),
                 ),

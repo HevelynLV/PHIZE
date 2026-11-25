@@ -16,7 +16,9 @@ import '../../domain/tutorial_repository.dart';
 import '../registro_historico.dart';
 import '../tutorial/tutorial_page.dart';
 import '../tutorial/tutorial_print.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 import '../widgets/progresso_analise.dart';
+import '../widgets/visual_noturno.dart';
 import 'consentimento_page.dart';
 
 /// Tela "Analisar print" (UC04, passo 1): o usuário escolhe o print na
@@ -165,69 +167,76 @@ class _AnalisarPrintPageState extends State<AnalisarPrintPage> {
   Widget build(BuildContext context) {
     final interrupcao = _interrupcao;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analisar print'),
-        actions: [
-          IconButton(
-            key: const Key('analisar_print_ajuda'),
-            tooltip: 'Como funciona',
-            icon: const Icon(Icons.help_outline),
-            onPressed: _carregando ? null : _abrirTutorial,
-          ),
-        ],
-      ),
-      body: SafeArea(
-        // Rolável: com letra ampliada (RF14), o texto empurra o botão para
-        // baixo da tela.
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Escolha na galeria o print da mensagem que você recebeu. '
-                'A imagem não sai do seu celular: o texto dela é lido aqui '
-                'mesmo e a imagem é descartada em seguida. Para a análise, '
-                'enviamos só o texto que aparece no print, e procuramos '
-                'esconder dados como CPF, telefone e cartão antes do envio.',
-              ),
-              if (interrupcao != null) ...[
-                const SizedBox(height: 16),
-                _AvisoInterrupcao(mensagem: interrupcao.mensagem),
-              ],
-              const SizedBox(height: 16),
-              if (interrupcao == MotivoInterrupcaoPrint.naoAutenticado)
-                FilledButton.icon(
-                  key: const Key('analisar_print_entrar_de_novo'),
-                  onPressed: _entrarDeNovo,
-                  icon: const Icon(Icons.login),
-                  label: const Text('Entrar de novo'),
-                )
-              else
-                FilledButton.icon(
-                  key: const Key('analisar_print_botao'),
-                  onPressed: _carregando ? null : _analisar,
-                  icon: const Icon(Icons.image_outlined),
-                  label: Text(
-                    interrupcao?.permiteNovaTentativa ?? false
-                        // A imagem anterior já foi descartada: a nova
-                        // tentativa exige escolher o print de novo.
-                        ? 'Escolher o print de novo'
-                        : 'Escolher print',
-                  ),
+    return TelaNoturna(
+      titulo: 'Analisar print',
+      icone: Icons.image_outlined,
+      acoes: [
+        IconButton(
+          key: const Key('analisar_print_ajuda'),
+          tooltip: 'Como funciona',
+          icon: const Icon(Icons.help_outline),
+          onPressed: _carregando ? null : _abrirTutorial,
+        ),
+      ],
+      // Rolável: com letra ampliada (RF14), o texto empurra o botão para
+      // baixo da tela.
+      corpo: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CartaoDestaque(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Escolha na galeria o print da mensagem que você recebeu. '
+                  'A imagem não sai do seu celular: o texto dela é lido aqui '
+                  'mesmo e a imagem é descartada em seguida. Para a análise, '
+                  'enviamos só o texto que aparece no print, e procuramos '
+                  'esconder dados como CPF, telefone e cartão antes do envio.',
                 ),
-              if (_carregando) ...[
-                const SizedBox(height: 24),
+                if (interrupcao != null) ...[
+                  const SizedBox(height: 16),
+                  _AvisoInterrupcao(mensagem: interrupcao.mensagem),
+                ],
+                const SizedBox(height: 16),
+                if (interrupcao == MotivoInterrupcaoPrint.naoAutenticado)
+                  FilledButton.icon(
+                    key: const Key('analisar_print_entrar_de_novo'),
+                    style: estiloBotaoDegrade,
+                    onPressed: _entrarDeNovo,
+                    icon: const Icon(Icons.login),
+                    label: const Text('Entrar de novo'),
+                  )
+                else
+                  FilledButton.icon(
+                    key: const Key('analisar_print_botao'),
+                    style: estiloBotaoDegrade,
+                    onPressed: _carregando ? null : _analisar,
+                    icon: const Icon(Icons.image_outlined),
+                    label: Text(
+                      interrupcao?.permiteNovaTentativa ?? false
+                          // A imagem anterior já foi descartada: a nova
+                          // tentativa exige escolher o print de novo.
+                          ? 'Escolher o print de novo'
+                          : 'Escolher print',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (_carregando) ...[
+            const SizedBox(height: 20),
+            CartaoSecao(
+              filhos: [
                 ProgressoAnalise(
                   key: const Key('analisar_print_carregando'),
                   etapa: _etapa,
                   contandoDemora: _imagemEscolhida,
                 ),
               ],
-            ],
-          ),
-        ),
+            ),
+          ],
+        ],
       ),
     );
   }

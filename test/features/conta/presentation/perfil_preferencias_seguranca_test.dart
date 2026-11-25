@@ -44,10 +44,8 @@ Future<ControlePreferencias> _abrir(
   await tester.pumpWidget(
     AparenciaApp(
       controle: controle,
-      construir: (claro, escuro, modo, builder) => MaterialApp(
-        theme: claro,
-        darkTheme: escuro,
-        themeMode: modo,
+      construir: (tema, builder) => MaterialApp(
+        theme: tema,
         builder: builder,
         home: PerfilPage(
           contaRepository: conta ?? FakeContaRepository(),
@@ -283,26 +281,15 @@ void main() {
   });
 
   group('acessibilidade (RF14)', () {
-    testWidgets('escolher o tema escuro muda o app e grava no aparelho', (
+    testWidgets('o app tem um só tema, azul-marinho, sem opção no perfil', (
       tester,
     ) async {
-      final preferencias = FakePreferenciasRepository();
-      await _abrir(tester, preferencias: preferencias);
-      expect(
-        Theme.of(tester.element(find.byType(PerfilPage))).brightness,
-        Brightness.light,
-      );
-
-      await _tocar(tester, 'perfil_tema');
-      await tester.tap(find.byKey(const Key('tema_escuro')));
-      await tester.pumpAndSettle();
-
+      await _abrir(tester, preferencias: FakePreferenciasRepository());
       expect(
         Theme.of(tester.element(find.byType(PerfilPage))).brightness,
         Brightness.dark,
       );
-      expect(preferencias.gravadas.tema, TemaPreferido.escuro);
-      expect(find.text(TemaPreferido.escuro.rotulo), findsOneWidget);
+      expect(find.byKey(const Key('perfil_tema')), findsNothing);
     });
 
     testWidgets('escolher letra muito grande amplia o texto de todas as telas', (
@@ -327,17 +314,14 @@ void main() {
       final preferencias = FakePreferenciasRepository(
         gravadas: const PreferenciasAparencia(
           tamanhoLetra: TamanhoLetra.grande,
-          tema: TemaPreferido.escuro,
         ),
       );
       final controle = await ControlePreferencias.carregar(preferencias);
       await tester.pumpWidget(
         AparenciaApp(
           controle: controle,
-          construir: (claro, escuro, modo, builder) => MaterialApp(
-            theme: claro,
-            darkTheme: escuro,
-            themeMode: modo,
+          construir: (tema, builder) => MaterialApp(
+            theme: tema,
             builder: builder,
             home: const Scaffold(body: Text('tela')),
           ),
@@ -360,15 +344,15 @@ void main() {
         preferencias: FakePreferenciasRepository(falhaAoSalvar: true),
       );
 
-      await _tocar(tester, 'perfil_tema');
-      await tester.tap(find.byKey(const Key('tema_escuro')));
+      await _tocar(tester, 'perfil_tamanho_letra');
+      await tester.tap(find.byKey(const Key('tamanho_letra_grande')));
       await tester.pumpAndSettle();
 
       expect(find.text(PerfilPage.mensagemFalhaPreferencia), findsOneWidget);
-      expect(
-        Theme.of(tester.element(find.byType(PerfilPage))).brightness,
-        Brightness.dark,
+      final escala = MediaQuery.textScalerOf(
+        tester.element(find.byType(PerfilPage)),
       );
+      expect(escala.scale(16) / 16, TamanhoLetra.grande.fator);
     });
   });
 }

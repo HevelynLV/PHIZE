@@ -183,7 +183,7 @@ void main() {
     // Fase 6.3: habilitado fora da web (os testes não rodam como web).
     expect(analisarPrint.onPressed, isNotNull);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Analisar link'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Analisar link'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('analisar_link_url')), findsOneWidget);

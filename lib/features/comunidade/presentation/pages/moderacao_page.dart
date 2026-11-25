@@ -7,6 +7,7 @@ import '../../domain/moderacao_repository.dart';
 import '../../domain/motivo_denuncia.dart';
 import '../../domain/novo_reporte.dart';
 import '../../domain/reporte_comunidade.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Moderação mínima da comunidade (RF11): aprovar, ocultar ou excluir de vez
 /// um reporte. Só aparece para contas da lista `moderadores`; quem garante o
@@ -107,7 +108,7 @@ class _ModeracaoPageState extends State<ModeracaoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Moderação')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/consentimento_repository.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Pede o consentimento, quando ainda não foi dado, e devolve se a análise de
 /// print pode seguir. Só o print envia texto da conversa ao provedor de LLM,
@@ -49,7 +50,7 @@ class ConsentimentoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context).textTheme;
 
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Privacidade')),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -118,6 +119,7 @@ class ConsentimentoPage extends StatelessWidget {
             children: [
               FilledButton(
                 key: const Key('consentimento_aceitar'),
+                style: estiloBotaoDegrade,
                 onPressed: () => _responder(context, true),
                 child: const Text('Entendi e concordo'),
               ),

@@ -111,34 +111,38 @@ class MarcaPhize extends StatelessWidget {
     return Semantics(
       label: 'phize',
       child: ExcludeSemantics(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            simbolo,
-            SizedBox(width: tamanho * 0.4),
-            Text('ph', style: estilo, textScaler: TextScaler.noScaling),
-            // "ı" sem pingo + pingo desenhado à parte, na cor da marca.
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Text('ı', style: estilo, textScaler: TextScaler.noScaling),
-                Positioned(
-                  left: tamanho * 0.119 - tamanho * 0.085,
-                  top: tamanho * 0.368 - tamanho * 0.085,
-                  child: Container(
-                    width: tamanho * 0.17,
-                    height: tamanho * 0.17,
-                    decoration: const BoxDecoration(
-                      color: _corPingo,
-                      shape: BoxShape.circle,
+        // Em tela estreita, a marca diminui em vez de estourar.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              simbolo,
+              SizedBox(width: tamanho * 0.4),
+              Text('ph', style: estilo, textScaler: TextScaler.noScaling),
+              // "ı" sem pingo + pingo desenhado à parte, na cor da marca.
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Text('ı', style: estilo, textScaler: TextScaler.noScaling),
+                  Positioned(
+                    left: tamanho * 0.119 - tamanho * 0.085,
+                    top: tamanho * 0.368 - tamanho * 0.085,
+                    child: Container(
+                      width: tamanho * 0.17,
+                      height: tamanho * 0.17,
+                      decoration: const BoxDecoration(
+                        color: _corPingo,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            Text('ze', style: estilo, textScaler: TextScaler.noScaling),
-          ],
+                ],
+              ),
+              Text('ze', style: estilo, textScaler: TextScaler.noScaling),
+            ],
+          ),
         ),
       ),
     );

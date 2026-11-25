@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../domain/preferencias_aparencia.dart';
 
 /// Disponibiliza as preferências de acessibilidade (RF14) para o app
-/// inteiro e aplica o tema e o tamanho da letra em todas as telas.
+/// inteiro e aplica o tamanho da letra em todas as telas.
 class EscopoPreferencias extends InheritedNotifier<ControlePreferencias> {
   const EscopoPreferencias({
     super.key,
@@ -18,16 +19,8 @@ class EscopoPreferencias extends InheritedNotifier<ControlePreferencias> {
       ?.notifier;
 }
 
-extension TemaPreferidoModo on TemaPreferido {
-  ThemeMode get modo => switch (this) {
-        TemaPreferido.sistema => ThemeMode.system,
-        TemaPreferido.claro => ThemeMode.light,
-        TemaPreferido.escuro => ThemeMode.dark,
-      };
-}
-
-/// Monta o [MaterialApp] com o tema e o tamanho da letra escolhidos.
-/// [construir] recebe os parâmetros de tema e o `builder` a repassar.
+/// Monta o [MaterialApp] com o tema do app e o tamanho da letra escolhido.
+/// [construir] recebe o tema e o `builder` a repassar.
 class AparenciaApp extends StatelessWidget {
   const AparenciaApp({
     super.key,
@@ -36,12 +29,7 @@ class AparenciaApp extends StatelessWidget {
   });
 
   final ControlePreferencias controle;
-  final Widget Function(
-    ThemeData claro,
-    ThemeData escuro,
-    ThemeMode modo,
-    TransitionBuilder builder,
-  ) construir;
+  final Widget Function(ThemeData tema, TransitionBuilder builder) construir;
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +40,7 @@ class AparenciaApp extends StatelessWidget {
         builder: (context, _) {
           final preferencias = controle.atual;
           return construir(
-            AppTheme.light,
-            AppTheme.dark,
-            preferencias.tema.modo,
+            AppTheme.noturno,
             (context, filho) {
               final consulta = MediaQuery.of(context);
               return MediaQuery(
@@ -64,7 +50,11 @@ class AparenciaApp extends StatelessWidget {
                     preferencias.tamanhoLetra,
                   ),
                 ),
-                child: filho ?? const SizedBox.shrink(),
+                // Ícones claros na barra de status: o fundo é sempre escuro.
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle.light,
+                  child: filho ?? const SizedBox.shrink(),
+                ),
               );
             },
           );

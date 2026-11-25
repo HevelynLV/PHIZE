@@ -34,10 +34,11 @@ import '../widgets/editar_nome_dialog.dart';
 import '../widgets/escolha_dialog.dart';
 import '../widgets/excluir_conta_dialog.dart';
 import '../widgets/trocar_senha_dialog.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Tela de Perfil (RF14), aberta pela aba Perfil: identificação da conta,
-/// segurança (senha e verificação do e-mail), acessibilidade (letra e
-/// tema), aprendizado (tutoriais e como o risco é calculado), os direitos
+/// segurança (senha e verificação do e-mail), acessibilidade (tamanho da
+/// letra), aprendizado (tutoriais e como o risco é calculado), os direitos
 /// do titular do RF12 (exportar e excluir), a privacidade da análise de
 /// print, informações sobre o app e a saída da conta.
 class PerfilPage extends StatefulWidget {
@@ -233,21 +234,6 @@ class _PerfilPageState extends State<PerfilPage> {
     await _guardarPreferencia(() => controle.mudarTamanhoLetra(escolhido));
   }
 
-  Future<void> _escolherTema(ControlePreferencias controle) async {
-    final escolhido = await showDialog<TemaPreferido>(
-      context: context,
-      builder: (_) => EscolhaDialog<TemaPreferido>(
-        titulo: 'Tema',
-        opcoes: TemaPreferido.values,
-        atual: controle.atual.tema,
-        rotulo: (tema) => tema.rotulo,
-        chave: (tema) => 'tema_${tema.name}',
-      ),
-    );
-    if (escolhido == null) return;
-    await _guardarPreferencia(() => controle.mudarTema(escolhido));
-  }
-
   Future<void> _guardarPreferencia(Future<void> Function() mudar) async {
     setState(() => _erro = null);
     try {
@@ -423,7 +409,7 @@ class _PerfilPageState extends State<PerfilPage> {
 
     return PopScope(
       canPop: !_processando,
-      child: Scaffold(
+      child: ScaffoldPhize(
         appBar: AppBar(
           title: const Text('Perfil'),
           // A exclusão em andamento decide sozinha para onde a tela vai.
@@ -522,14 +508,6 @@ class _PerfilPageState extends State<PerfilPage> {
                         subtitle: Text(preferencias.atual.tamanhoLetra.rotulo),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _escolherTamanhoLetra(preferencias),
-                      ),
-                      ListTile(
-                        key: const Key('perfil_tema'),
-                        leading: const Icon(Icons.dark_mode_outlined),
-                        title: const Text('Tema'),
-                        subtitle: Text(preferencias.atual.tema.rotulo),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _escolherTema(preferencias),
                       ),
                     ],
                   ),
@@ -732,11 +710,10 @@ class _SeloVerificacao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Verde e âmbar com contraste para texto nos dois temas.
-    final escuro = Theme.of(context).brightness == Brightness.dark;
+    // Verde e âmbar com contraste para texto sobre o azul-marinho.
     final cor = verificado
-        ? (escuro ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
-        : (escuro ? const Color(0xFFFBBF24) : const Color(0xFF8A5A00));
+        ? const Color(0xFF4ADE80)
+        : const Color(0xFFFBBF24);
     return Container(
       key: Key(
         verificado ? 'perfil_email_verificado' : 'perfil_email_pendente',

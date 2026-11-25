@@ -10,6 +10,7 @@ import '../../domain/mensagem_alerta.dart';
 import '../../domain/motivo_denuncia.dart';
 import '../../domain/novo_reporte.dart';
 import '../../domain/reporte_comunidade.dart';
+import '../../../../shared/widgets/scaffold_phize.dart';
 
 /// Detalhe de um reporte da comunidade (RF08), com curtir (RF06) e
 /// compartilhar (RF09) e denunciar (RF11). Sem autor: aparece como
@@ -181,7 +182,7 @@ class _DetalheReportePageState extends State<DetalheReportePage> {
         : '${reporte.curtidas} curtidas';
     final curtiu = _curtiu == true;
 
-    return Scaffold(
+    return ScaffoldPhize(
       appBar: AppBar(title: const Text('Alerta da comunidade')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
